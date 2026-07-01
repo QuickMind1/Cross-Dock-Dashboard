@@ -14,8 +14,11 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 
-const isLoginPage = window.location.pathname.endsWith('index.html') || window.location.pathname === '/';
-const isDashboardPage = window.location.pathname.endsWith('dashboard.html');
+const loginForm = document.getElementById('loginForm');
+const dashboardBody = document.getElementById('dashboardBody');
+
+const isLoginPage = loginForm !== null;
+const isDashboardPage = dashboardBody !== null;
 
 onAuthStateChanged(auth, (user) => {
     if (user) {
