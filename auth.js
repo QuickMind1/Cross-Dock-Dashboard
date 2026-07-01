@@ -1,5 +1,5 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
-import { getAuth, signInWithEmailAndPassword, sendPasswordResetEmail, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
+import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, sendPasswordResetEmail, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyA-hCb_di_Xi4QiNmIns1mdVp0KQGe3eGc",
@@ -30,17 +30,49 @@ onAuthStateChanged(auth, (user) => {
         }
     } else {
         if (isDashboardPage) {
-            window.location.href = "index.html";
+            window.location.href = "./";
         }
     }
 });
 
 if (isLoginPage) {
+    const signupForm = document.getElementById('signupForm');
     const loginForm = document.getElementById('loginForm');
+    const tabLogin = document.getElementById('tabLogin');
+    const tabSignup = document.getElementById('tabSignup');
+    const formTitle = document.getElementById('formTitle');
     const forgotPasswordBtn = document.getElementById('forgotPasswordBtn');
     const errorMsg = document.getElementById('errorMessage');
     const successMsg = document.getElementById('successMessage');
 
+    tabLogin.addEventListener('click', () => {
+        loginForm.classList.remove('hidden');
+        signupForm.classList.add('hidden');
+
+        tabLogin.classList.remove('text-gray-500');
+        tabLogin.classList.add('text-primary', 'border-b-2', 'border-primary');
+        tabSignup.classList.remove('text-primary', 'border-b-2', 'border-primary');
+        tabSignup.classList.add('text-gray-500');
+
+        formTitle.textContent = "Qué gusto volver a verte";
+        errorMsg.classList.add('hidden');
+        successMsg.classList.add('hidden');
+    })
+
+    tabSignup.addEventListener('click', () => {
+        loginForm.classList.add('hidden');
+        signupForm.classList.remove('hidden');
+
+        tabSignup.classList.add('text-primary', 'border-b-2', 'border-primary');
+        tabSignup.classList.remove('text-gray-500');
+        tabLogin.classList.remove('text-primary', 'border-b-2', 'border-primary');
+        tabLogin.classList.add('text-gray-500');
+
+        formTitle.textContent = "Crea una cuenta";
+        errorMsg.classList.add('hidden');
+        successMsg.classList.add('hidden');
+    })
+    
     loginForm.addEventListener('submit', (e) => {
         e.preventDefault();
         errorMsg.classList.add('hidden');
@@ -49,14 +81,33 @@ if (isLoginPage) {
         const password = document.getElementById('password').value;
 
         signInWithEmailAndPassword(auth, email, password)
-            .then((userCredential) => {
-                console.log("¡Has iniciado sesión correctamente!");
-            })
             .catch((error) => {
                 errorMsg.textContent = "Correo electrónico o contraseña incorrectos.";
                 errorMsg.classList.remove('hidden');
             });
     });
+
+    signupForm.addEventListener('submit', (e) => {
+        e.preventDefault();
+        errorMsg.classList.add('hidden');
+
+        const email = document.getElementById('signupEmail').value;
+        const password = document.getElementById('signupPassword').value;
+        const confirmPassword = document.getElementById('signupConfirmPassword').value;
+
+        if (password !== confirmPassword) {
+            errorMsg.textContent = "Las contraseñas no coinciden";
+            errorMsg.classList.remove('hidden');
+            return;
+        }
+
+        createUserWithEmailAndPassword(auth, email, password)
+            .then((userCredential) => {})
+            .catch((error) => {
+                errorMsg.textContent = "Error: " + error.message.replace('Firebase: ', '');
+                errorMsg.classList.remove('hidden');
+            })
+    })
 
     forgotPasswordBtn.addEventListener('click', (e) => {
         e.preventDefault();

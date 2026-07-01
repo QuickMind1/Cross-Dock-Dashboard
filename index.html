@@ -25,7 +25,14 @@
     <div class="bg-card border border-border p-8 rounded-xl shadow-md w-full max-w-md">
         <img src="image_sources/cross_dock_logo.jpg"><br>
 
-        <h2 class="text-2xl font-bold text-center mb-6 text-gray-800">Qué gusto volver a verte</h2>
+        <h2 id="formTitle" class="text-2xl font-bold text-center mb-6 text-gray-800">Qué gusto volver a verte</h2>
+
+        <div class="flex border-b border-border mg-6">
+            <button id="tabLogin" class="flex-1 py-2 text-center text-primary border-b-2 border-primary font-medium transition-colors">Iniciar Sesión</button>
+            <button id="tabSignup" class="flex-1 py-2 text-center text-gray-500 font-medium transition-colors">Registrar Usuario</button>
+        </div>
+
+        <br>
 
         <form id="loginForm" class="space-y-4">
             <div>
@@ -42,9 +49,29 @@
             <button type="submit" class="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-white bg-primary hover:opacity-90 font-medium">
                 Iniciar Sesión
             </button>
+        </form>
+
+        <form id="signupForm" class="spcae-y-4 hidden">
+            <div>
+                <label class="block text-sm font-medium text-gray-700">Correo Electrónico</label>
+                <input type="email" id="signupEmail" class="mt-1 block w-full px-3 py-2 border border-border rounded-md shadow-sm focus:outline-none focus:border-primary" required>
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700">Contraseña</label>
+                <input type="password" id="signupPassword" minlength="6" class="mt-1 block w-full px-3 py-2 border border-border rounded-md shadow-sm focus:outline-none focus:ring-primary focus:border-primary" required>
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700">Confirmar Contraseña</label>
+                <input type="password" id="signupConfirmPassword" minlength="6" class="mt-1 block w-full px-3 py-2 border border-border rounded-md shadow-sm focus:outline-none focus:ring-primary focus:border-primary" required>
+            </div><br>
+            <button type="submit" class="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-white bg-primary hover:opacity-90 font-medium">
+                Registrar Usuario
+            </button>
+        </form>
+        <div class="mt-4">
             <p id="errorMessage" class="text-red-500 text-sm text-center hidden"></p>
             <p id="successMessage" class="text-green-600 text-sm text-center hidden"></p>
-        </form>
+        </div>
     </div>
 
     <script type="module" src="auth.js"></script>
