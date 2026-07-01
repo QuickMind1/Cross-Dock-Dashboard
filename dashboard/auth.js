@@ -1,0 +1,86 @@
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
+import { getAuth, signInWithEmailAndPassword, sendPasswordResetEmail, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyA-hCb_di_Xi4QiNmIns1mdVp0KQGe3eGc",
+  authDomain: "crossdock-bce69.firebaseapp.com",
+  projectId: "crossdock-bce69",
+  storageBucket: "crossdock-bce69.firebasestorage.app",
+  messagingSenderId: "2268808257",
+  appId: "1:2268808257:web:2db3e6aad59e2d67c5f2c0",
+  measurementId: "G-9R77W6DE9W"
+};
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+
+const isLoginPage = window.location.pathname.endsWith('index.html') || window.location.pathname === '/';
+const isDashboardPage = window.location.pathname.endsWith('dashboard.html');
+
+onAuthStateChanged(auth, (user) => {
+    if (user) {
+        if (isLoginPage) {
+            window.location.href = "dashboard.html";
+        } else if (isDashboardPage) {
+            document.getElementById('dashboardBody').classList.remove('hidden');
+            document.getElementById('userDisplay').textContent = user.email;
+        }
+    } else {
+        if (isDashboardPage) {
+            window.location.href = "index.html";
+        }
+    }
+});
+
+if (isLoginPage) {
+    const loginForm = document.getElementById('loginForm');
+    const forgotPasswordBtn = document.getElementById('forgotPasswordBtn');
+    const errorMsg = document.getElementById('errorMessage');
+    const successMsg = document.getElementById('successMessage');
+
+    loginForm.addEventListener('submit', (e) => {
+        e.preventDefault();
+        errorMsg.classList.add('hidden');
+        
+        const email = document.getElementById('email').value;
+        const password = document.getElementById('password').value;
+
+        signInWithEmailAndPassword(auth, email, password)
+            .then((userCredential) => {
+                console.log("¡Has iniciado sesión correctamente!");
+            })
+            .catch((error) => {
+                errorMsg.textContent = "Correo electrónico o contraseña incorrectos.";
+                errorMsg.classList.remove('hidden');
+            });
+    });
+
+    forgotPasswordBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        errorMsg.classList.add('hidden');
+        successMsg.classList.add('hidden');
+
+        const email = document.getElementById('email').value;
+        if(!email) {
+            errorMsg.textContent = "Por favor, escribe primero tu dirección de correo electrónico en el campo de arriba y, a continuación, haz clic en «¿No recuerdas la contraseña?».";
+            errorMsg.classList.remove('hidden');
+            return;
+        }
+
+        sendPasswordResetEmail(auth, email)
+            .then(() => {
+                successMsg.textContent = "¡Ya te hemos enviado el correo electrónico para restablecer la contraseña! Comprueba tu bandeja de entrada (y también spam).";
+                successMsg.classList.remove('hidden');
+            })
+            .catch((error) => {
+                errorMsg.textContent = "Se ha producido un error al enviar el correo electrónico de restablecimiento. Asegúrate de que la dirección de correo electrónico es correcta.";
+                errorMsg.classList.remove('hidden');
+            });
+    });
+}
+
+if (isDashboardPage) {
+    document.getElementById('logoutBtn').addEventListener('click', () => {
+        signOut(auth).then(() => {});
+    });
+}

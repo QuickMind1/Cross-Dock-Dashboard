@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cross Dock Dashboard</title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              background: 'hsl(220 20% 97%)',
+              foreground: 'hsl(222.2 84% 4.9%)',
+              card: 'hsl(0 0% 100%)',
+              'card-foreground': 'hsl(222.2 84% 4.9%)',
+              border: 'hsl(214.3 31.8% 91.4%)',
+              primary: 'hsl(32 95% 52%)',
+              'primary-foreground': 'hsl(210 40% 98%)',
+              nav: 'hsl(220 25% 12%)',
+              'nav-foreground': 'hsl(210 40% 98%)',
+              muted: 'hsl(210 40% 96.1%)',
+              'muted-foreground': 'hsl(215.4 16.3% 46.9%)',
+              success: 'hsl(142.1 76.2% 36.3%)',
+              destructive: 'hsl(0 84.2% 60.2%)',
+              warning: 'hsl(38 92% 50%)',
+            }
+          }
+        }
+      }
+    </script>
+</head>
+
+<body class="bg-background font-sans hidden" id="dashboardBody">
+    
+    <div class="min-h-screen bg-background">
+        <header class="bg-nav text-nav-foreground border-b border-border sticky top-0 z-50">
+          <div class="max-w-[1600px] mx-auto px-4 sm:px-6 py-3 flex items-center justify-between">
+            
+            <a class="flex items-center gap-3 rounded-lg focus-visible:outline-none" href="#">
+              <div class="bg-primary p-2 rounded-lg">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-truck h-5 w-5 text-primary-foreground">
+                  <path d="M14 18V6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v11a1 1 0 0 0 1 1h2"></path>
+                  <path d="M15 18H9"></path>
+                  <path d="M19 18h2a1 1 0 0 0 1-1v-3.65a1 1 0 0 0-.22-.624l-3.48-4.35A1 1 0 0 0 17.52 8H14"></path>
+                  <circle cx="17" cy="18" r="2"></circle><circle cx="7" cy="18" r="2"></circle>
+                </svg>
+              </div>
+              <div>
+                <h1 class="text-lg font-bold tracking-tight">Cross Dock Dashboard</h1>
+                <p class="text-xs text-nav-foreground/60">Coordinación de Salidas</p>
+              </div>
+            </a>
+
+            <div class="flex items-center gap-3">
+              <button type="button" class="flex items-center gap-2 px-3 py-2 rounded-lg bg-nav-foreground/10 hover:bg-nav-foreground/20 text-nav-foreground text-sm font-medium transition-colors outline-none">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-user h-4 w-4">
+                  <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"></path>
+                  <circle cx="12" cy="7" r="4"></circle>
+                </svg>
+                <span class="hidden sm:inline" id="userDisplay">Cargando...</span>
+              </button>
+
+              <button id="logoutBtn" class="flex items-center gap-2 px-3 py-2 rounded-lg bg-destructive/80 hover:bg-destructive text-white text-sm font-medium transition-colors">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-log-out h-4 w-4">
+                  <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+                  <polyline points="16 17 21 12 16 7"></polyline>
+                  <line x1="21" x2="9" y1="12" y2="12"></line>
+                </svg>
+                <span class="hidden sm:inline">Salir</span>
+              </button>
+            </div>
+          </div>
+        </header>
+
+        <main class="max-w-[1600px] mx-auto px-4 sm:px-6 py-6 space-y-6">
+          
+          <div>
+            <h2 class="text-sm font-semibold text-muted-foreground uppercase tracking-wide mb-3">Resumen General</h2>
+            <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
+              <div class="flex items-center gap-3 rounded-lg bg-card border p-3 transition-all border-border shadow-sm">
+                <div class="text-primary">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-package h-5 w-5"><path d="M11 21.73a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73z"></path><path d="M12 22V12"></path><path d="m3.3 7 7.703 4.734a2 2 0 0 0 1.994 0L20.7 7"></path><path d="m7.5 4.27 9 5.15"></path></svg>
+                </div>
+                <div>
+                  <p class="text-xs text-muted-foreground font-medium">Total Viajes</p>
+                  <p class="text-lg font-bold font-mono">31</p>
+                </div>
+              </div>
+              
+              <div class="flex items-center gap-3 rounded-lg bg-card border p-3 transition-all border-border shadow-sm">
+                <div class="text-success">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-clock h-5 w-5"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+                </div>
+                <div>
+                  <p class="text-xs text-muted-foreground font-medium">A Tiempo</p>
+                  <p class="text-lg font-bold font-mono">17</p>
+                </div>
+              </div>
+              
+              <div class="flex items-center gap-3 rounded-lg bg-card border p-3 transition-all border-border shadow-sm">
+                <div class="text-destructive">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-triangle-alert h-5 w-5"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3"></path><path d="M12 9v4"></path><path d="M12 17h.01"></path></svg>
+                </div>
+                <div>
+                  <p class="text-xs text-muted-foreground font-medium">Atrasados</p>
+                  <p class="text-lg font-bold font-mono">3</p>
+                </div>
+              </div>
+
+              <div class="flex items-center gap-3 rounded-lg bg-card border p-3 transition-all border-border shadow-sm">
+                <div class="text-warning">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-chart-column h-5 w-5"><path d="M3 3v16a2 2 0 0 0 2 2h16"></path><path d="M18 17V9"></path><path d="M13 17V5"></path><path d="M8 17v-3"></path></svg>
+                </div>
+                <div>
+                  <p class="text-xs text-muted-foreground font-medium">Incidencias</p>
+                  <p class="text-lg font-bold font-mono">2</p>
+                </div>
+              </div>
+
+              <div class="flex items-center gap-3 rounded-lg bg-card border p-3 transition-all border-border shadow-sm">
+                <div class="text-muted-foreground">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-truck h-5 w-5"><path d="M14 18V6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v11a1 1 0 0 0 1 1h2"></path><path d="M15 18H9"></path><path d="M19 18h2a1 1 0 0 0 1-1v-3.65a1 1 0 0 0-.22-.624l-3.48-4.35A1 1 0 0 0 17.52 8H14"></path><circle cx="17" cy="18" r="2"></circle><circle cx="7" cy="18" r="2"></circle></svg>
+                </div>
+                <div>
+                  <p class="text-xs text-muted-foreground font-medium">Pendientes</p>
+                  <p class="text-lg font-bold font-mono">26</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div>
+            <h2 class="text-sm font-semibold text-muted-foreground uppercase tracking-wide mb-3">Modalidades</h2>
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              
+              <button class="group relative overflow-hidden rounded-xl bg-card border border-border p-5 text-left transition-all duration-300 hover:border-primary/40 shadow-sm hover:shadow-md">
+                <div class="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-primary to-warning"></div>
+                <div class="flex items-start justify-between mb-4">
+                  <div class="flex items-center gap-3">
+                    <span class="text-2xl">📦</span>
+                    <h3 class="text-base font-bold text-foreground">Ultima Milla</h3>
+                  </div>
+                  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-chevron-right h-5 w-5 text-muted-foreground group-hover:text-primary transition-colors"><path d="m9 18 6-6-6-6"></path></svg>
+                </div>
+                <div class="space-y-2">
+                  <div class="flex items-center justify-between"><span class="flex items-center gap-1.5 text-xs text-muted-foreground">Total</span><span class="text-sm font-bold font-mono">25</span></div>
+                  <div class="flex items-center justify-between"><span class="flex items-center gap-1.5 text-xs text-success">A Tiempo</span><span class="text-sm font-bold font-mono text-success">15</span></div>
+                  <div class="flex items-center justify-between"><span class="flex items-center gap-1.5 text-xs text-destructive">Atrasados</span><span class="text-sm font-bold font-mono text-destructive">3</span></div>
+                  <div class="flex items-center justify-between"><span class="flex items-center gap-1.5 text-xs text-muted-foreground">Pendientes</span><span class="text-sm font-bold font-mono">20</span></div>
+                </div>
+                <div class="mt-4 flex h-1.5 rounded-full overflow-hidden bg-muted">
+                  <div class="bg-success transition-all" style="width: 60%;"></div>
+                  <div class="bg-destructive transition-all" style="width: 12%;"></div>
+                  <div class="bg-warning transition-all" style="width: 8%;"></div>
+                </div>
+              </button>
+
+              <button class="group relative overflow-hidden rounded-xl bg-card border border-border p-5 text-left transition-all duration-300 hover:border-blue-500/40 shadow-sm hover:shadow-md">
+                <div class="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-blue-500 to-cyan-400"></div>
+                <div class="flex items-start justify-between mb-4">
+                  <div class="flex items-center gap-3">
+                    <span class="text-2xl">🚚</span>
+                    <h3 class="text-base font-bold text-foreground">TR1</h3>
+                  </div>
+                  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-chevron-right h-5 w-5 text-muted-foreground group-hover:text-blue-500 transition-colors"><path d="m9 18 6-6-6-6"></path></svg>
+                </div>
+                <div class="space-y-2">
+                  <div class="flex items-center justify-between"><span class="flex items-center gap-1.5 text-xs text-muted-foreground">Total</span><span class="text-sm font-bold font-mono">1</span></div>
+                  <div class="flex items-center justify-between"><span class="flex items-center gap-1.5 text-xs text-success">A Tiempo</span><span class="text-sm font-bold font-mono text-success">0</span></div>
+                  <div class="flex items-center justify-between"><span class="flex items-center gap-1.5 text-xs text-destructive">Atrasados</span><span class="text-sm font-bold font-mono text-destructive">0</span></div>
+                  <div class="flex items-center justify-between"><span class="flex items-center gap-1.5 text-xs text-muted-foreground">Pendientes</span><span class="text-sm font-bold font-mono">1</span></div>
+                </div>
+                <div class="mt-4 flex h-1.5 rounded-full overflow-hidden bg-muted">
+                  <div class="bg-success transition-all" style="width: 0%;"></div>
+                  <div class="bg-destructive transition-all" style="width: 0%;"></div>
+                  <div class="bg-warning transition-all" style="width: 0%;"></div>
+                </div>
+              </button>
+
+              <button class="group relative overflow-hidden rounded-xl bg-card border border-border p-5 text-left transition-all duration-300 hover:border-emerald-500/40 shadow-sm hover:shadow-md">
+                <div class="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-emerald-500 to-teal-400"></div>
+                <div class="flex items-start justify-between mb-4">
+                  <div class="flex items-center gap-3">
+                    <span class="text-2xl">🚛</span>
+                    <h3 class="text-base font-bold text-foreground">TR2</h3>
+                  </div>
+                  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-chevron-right h-5 w-5 text-muted-foreground group-hover:text-emerald-500 transition-colors"><path d="m9 18 6-6-6-6"></path></svg>
+                </div>
+                <div class="space-y-2">
+                  <div class="flex items-center justify-between"><span class="flex items-center gap-1.5 text-xs text-muted-foreground">Total</span><span class="text-sm font-bold font-mono">0</span></div>
+                  <div class="flex items-center justify-between"><span class="flex items-center gap-1.5 text-xs text-success">A Tiempo</span><span class="text-sm font-bold font-mono text-success">0</span></div>
+                  <div class="flex items-center justify-between"><span class="flex items-center gap-1.5 text-xs text-destructive">Atrasados</span><span class="text-sm font-bold font-mono text-destructive">0</span></div>
+                  <div class="flex items-center justify-between"><span class="flex items-center gap-1.5 text-xs text-muted-foreground">Pendientes</span><span class="text-sm font-bold font-mono">0</span></div>
+                </div>
+              </button>
+
+              <button class="group relative overflow-hidden rounded-xl bg-card border border-border p-5 text-left transition-all duration-300 hover:border-purple-500/40 shadow-sm hover:shadow-md">
+                <div class="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-purple-500 to-indigo-400"></div>
+                <div class="flex items-start justify-between mb-4">
+                  <div class="flex items-center gap-3">
+                    <span class="text-2xl">🚆</span>
+                    <h3 class="text-base font-bold text-foreground">INTERMODAL</h3>
+                  </div>
+                  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-chevron-right h-5 w-5 text-muted-foreground group-hover:text-purple-500 transition-colors"><path d="m9 18 6-6-6-6"></path></svg>
+                </div>
+                <div class="space-y-2">
+                  <div class="flex items-center justify-between"><span class="flex items-center gap-1.5 text-xs text-muted-foreground">Total</span><span class="text-sm font-bold font-mono">0</span></div>
+                  <div class="flex items-center justify-between"><span class="flex items-center gap-1.5 text-xs text-success">A Tiempo</span><span class="text-sm font-bold font-mono text-success">0</span></div>
+                  <div class="flex items-center justify-between"><span class="flex items-center gap-1.5 text-xs text-destructive">Atrasados</span><span class="text-sm font-bold font-mono text-destructive">0</span></div>
+                  <div class="flex items-center justify-between"><span class="flex items-center gap-1.5 text-xs text-muted-foreground">Pendientes</span><span class="text-sm font-bold font-mono">0</span></div>
+                </div>
+              </button>
+
+              <button class="group relative overflow-hidden rounded-xl bg-card border border-border p-5 text-left transition-all duration-300 hover:border-rose-500/40 shadow-sm hover:shadow-md">
+                <div class="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-rose-500 to-pink-400"></div>
+                <div class="flex items-start justify-between mb-4">
+                  <div class="flex items-center gap-3">
+                    <span class="text-2xl">🇺🇸</span>
+                    <h3 class="text-base font-bold text-foreground">USA IMPO EXPO</h3>
+                  </div>
+                  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-chevron-right h-5 w-5 text-muted-foreground group-hover:text-rose-500 transition-colors"><path d="m9 18 6-6-6-6"></path></svg>
+                </div>
+                <div class="space-y-2">
+                  <div class="flex items-center justify-between"><span class="flex items-center gap-1.5 text-xs text-muted-foreground">Total</span><span class="text-sm font-bold font-mono">0</span></div>
+                  <div class="flex items-center justify-between"><span class="flex items-center gap-1.5 text-xs text-success">A Tiempo</span><span class="text-sm font-bold font-mono text-success">0</span></div>
+                  <div class="flex items-center justify-between"><span class="flex items-center gap-1.5 text-xs text-destructive">Atrasados</span><span class="text-sm font-bold font-mono text-destructive">0</span></div>
+                  <div class="flex items-center justify-between"><span class="flex items-center gap-1.5 text-xs text-muted-foreground">Pendientes</span><span class="text-sm font-bold font-mono">0</span></div>
+                </div>
+              </button>
+
+              <button class="group relative overflow-hidden rounded-xl bg-card border border-border p-5 text-left transition-all duration-300 hover:border-amber-500/40 shadow-sm hover:shadow-md">
+                <div class="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-amber-600 to-yellow-400"></div>
+                <div class="flex items-start justify-between mb-4">
+                  <div class="flex items-center gap-3">
+                    <span class="text-2xl">🏭</span>
+                    <h3 class="text-base font-bold text-foreground">FURGON</h3>
+                  </div>
+                  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-chevron-right h-5 w-5 text-muted-foreground group-hover:text-amber-500 transition-colors"><path d="m9 18 6-6-6-6"></path></svg>
+                </div>
+                <div class="space-y-2">
+                  <div class="flex items-center justify-between"><span class="flex items-center gap-1.5 text-xs text-muted-foreground">Total</span><span class="text-sm font-bold font-mono">5</span></div>
+                  <div class="flex items-center justify-between"><span class="flex items-center gap-1.5 text-xs text-success">A Tiempo</span><span class="text-sm font-bold font-mono text-success">2</span></div>
+                  <div class="flex items-center justify-between"><span class="flex items-center gap-1.5 text-xs text-destructive">Atrasados</span><span class="text-sm font-bold font-mono text-destructive">0</span></div>
+                  <div class="flex items-center justify-between"><span class="flex items-center gap-1.5 text-xs text-muted-foreground">Pendientes</span><span class="text-sm font-bold font-mono">5</span></div>
+                </div>
+                <div class="mt-4 flex h-1.5 rounded-full overflow-hidden bg-muted">
+                  <div class="bg-success transition-all" style="width: 40%;"></div>
+                </div>
+              </button>
+
+            </div>
+          </div>
+        </main>
+    </div>
+
+    <script type="module" src="auth.js"></script>
+</body>
+</html>
