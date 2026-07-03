@@ -3,259 +3,201 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cross Dock Dashboard</title>
+    <title>Cross Dock - Panel de Control</title>
     
+    <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
-    
+
     <script>
       tailwind.config = {
         theme: {
           extend: {
             colors: {
-              background: 'hsl(220 20% 97%)',
-              foreground: 'hsl(222.2 84% 4.9%)',
-              card: 'hsl(0 0% 100%)',
-              'card-foreground': 'hsl(222.2 84% 4.9%)',
-              border: 'hsl(214.3 31.8% 91.4%)',
-              primary: 'hsl(32 95% 52%)',
-              'primary-foreground': 'hsl(210 40% 98%)',
-              nav: 'hsl(220 25% 12%)',
-              'nav-foreground': 'hsl(210 40% 98%)',
-              muted: 'hsl(210 40% 96.1%)',
+              header: '#1A1A2E',
+              icon: '#E52E4F',
+              'icon-hovered': '#FF6B8A',
+              text: '#353547',
               'muted-foreground': 'hsl(215.4 16.3% 46.9%)',
-              success: 'hsl(142.1 76.2% 36.3%)',
-              destructive: 'hsl(0 84.2% 60.2%)',
-              warning: 'hsl(38 92% 50%)',
+              background: '#F8FAFC',
+              surface: '#FFFFFF',
+              primary: '#0F172A',
+              border: '#E2E8F0',
             }
           }
         }
       }
     </script>
 </head>
+<body class="bg-background text-slate-800 font-sans min-h-screen">
+    <header class="bg-header p-5 text-white border-b border-border">
+        <div class="max-w-[1600px] mx-auto px-4 sm:px-6 py-3 flex items-center justify-between">
+            <img src="./image_sources/cross_dock_logo.png" class="brightness-0 invert">
+            <div class="flex flex-col items-center">
+                <h3 class="text-lg font-semibold">Usuario:</h3>
+                <p id="user-label" class="text-md">username@domain.com</p>
+            </div>
+            <div class="flex flex-row gap-7">
+                <a class="flex items-center gap-3 rounded-lg focus-visible:outline-none" href="#">
+                    <div class="bg-icon p-2 rounded-lg">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-truck h-5 w-5 text-primary-foreground">
+                        <path d="M14 18V6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v11a1 1 0 0 0 1 1h2"></path>
+                        <path d="M15 18H9"></path>
+                        <path d="M19 18h2a1 1 0 0 0 1-1v-3.65a1 1 0 0 0-.22-.624l-3.48-4.35A1 1 0 0 0 17.52 8H14"></path>
+                        <circle cx="17" cy="18" r="2"></circle><circle cx="7" cy="18" r="2"></circle>
+                    </svg>
+                    </div>
+                    <div>
+                    <h1 class="text-lg font-bold tracking-tight">Cross Dock Dashboard</h1>
+                    <p class="text-xs text-nav-foreground/60">Modalidad Terrestre</p>
+                    </div>
+                </a>
+                <button id="logoutBtn" class="flex items-center gap-3 px-3 py-2 rounded-md bg-icon hover:bg-icon-hovered text-white text-sm font-medium transition-colors shadow-sm">
+                    <span class="hidden sm:inline">Salir</span>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-log-out h-4 w-4">
+                        <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+                        <polyline points="16 17 21 12 16 7"></polyline>
+                        <line x1="21" x2="9" y1="12" y2="12"></line>
+                    </svg>
+                </button>
+            </div>
+        </div>
+    </header>
 
-<body class="bg-background font-sans hidden" id="dashboardBody">
-    
-    <div class="min-h-screen bg-background">
-        <header class="bg-nav text-nav-foreground border-b border-border sticky top-0 z-50">
-          <div class="max-w-[1600px] mx-auto px-4 sm:px-6 py-3 flex items-center justify-between">
+    <div class="p-6">
+        <h2 class="text-2xl font-bold text-primary flex items-center gap-2 pb-6">
+            Resumen General
+        </h2>
+
+        <div class="flex flex-col md:flex-row gap-6 mb-8">
+            <div class="bg-surface p-6 rounded-xl shadow-sm flex-1 cursor-pointer border-2 border-transparent hover:border-orange-500 hover:-translate-y-1 transition-all duration-200 flex items-center justify-center gap-4" onclick="showDetails('all', 'all')">
+                <div class="text-orange-500 flex-shrink-0">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-package h-10 w-10">
+                        <path d="M11 21.73a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73z"></path>
+                        <path d="M12 22V12"></path>
+                        <path d="m3.3 7 7.703 4.734a2 2 0 0 0 1.994 0L20.7 7"></path>
+                        <path d="m7.5 4.27 9 5.15"></path>
+                    </svg>
+                </div>
+                <div class="text-left">
+                    <h3 class="m-0 text-slate-500 text-xs font-bold uppercase tracking-wider">Total Viajes</h3>
+                    <div class="text-4xl font-bold mt-3 text-text" id="val-total-trips">0</div>
+                </div>
+            </div>
+
+            <div class="bg-surface p-6 rounded-xl shadow-sm flex-1 cursor-pointer border-2 border-transparent hover:border-green-500 hover:-translate-y-1 transition-all duration-200 flex items-center justify-center gap-4" onclick="showDetails('status', 'coordinando')">
+                <div class="text-green-500 flex-shrink-0">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-clock h-10 w-10">
+                        <circle cx="12" cy="12" r="10"></circle>
+                        <polyline points="12 6 12 12 16 14"></polyline>
+                    </svg>
+                </div>
+                <div class="text-left">
+                    <h3 class="m-0 text-slate-500 text-xs font-bold uppercase tracking-wider">A Tiempo</h3>
+                    <div class="text-4xl font-bold mt-3 text-text" id="val-ontime">0</div>
+                </div>
+            </div>
             
-            <a class="flex items-center gap-3 rounded-lg focus-visible:outline-none" href="#">
-              <div class="bg-primary p-2 rounded-lg">
-                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-truck h-5 w-5 text-primary-foreground">
-                  <path d="M14 18V6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v11a1 1 0 0 0 1 1h2"></path>
-                  <path d="M15 18H9"></path>
-                  <path d="M19 18h2a1 1 0 0 0 1-1v-3.65a1 1 0 0 0-.22-.624l-3.48-4.35A1 1 0 0 0 17.52 8H14"></path>
-                  <circle cx="17" cy="18" r="2"></circle><circle cx="7" cy="18" r="2"></circle>
-                </svg>
-              </div>
-              <div>
-                <h1 class="text-lg font-bold tracking-tight">Cross Dock Dashboard</h1>
-                <p class="text-xs text-nav-foreground/60">Coordinación de Salidas</p>
-              </div>
-            </a>
-
-            <div class="flex items-center gap-3">
-              <button type="button" class="flex items-center gap-2 px-3 py-2 rounded-lg bg-nav-foreground/10 hover:bg-nav-foreground/20 text-nav-foreground text-sm font-medium transition-colors outline-none">
-                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-user h-4 w-4">
-                  <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"></path>
-                  <circle cx="12" cy="7" r="4"></circle>
-                </svg>
-                <span class="hidden sm:inline" id="userDisplay">Cargando...</span>
-              </button>
-
-              <button id="logoutBtn" class="flex items-center gap-2 px-3 py-2 rounded-lg bg-destructive/80 hover:bg-destructive text-white text-sm font-medium transition-colors">
-                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-log-out h-4 w-4">
-                  <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
-                  <polyline points="16 17 21 12 16 7"></polyline>
-                  <line x1="21" x2="9" y1="12" y2="12"></line>
-                </svg>
-                <span class="hidden sm:inline">Salir</span>
-              </button>
+            <div class="bg-surface p-6 rounded-xl shadow-sm flex-1 cursor-pointer border-2 border-transparent hover:border-amber-500 hover:-translate-y-1 transition-all duration-200 flex items-center justify-center gap-4" onclick="showDetails('status', 'buscando')">
+                <div class="text-amber-500 flex-shrink-0">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-triangle-alert h-10 w-10">
+                        <path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3"></path>
+                        <path d="M12 9v4"></path>
+                        <path d="M12 17h.01"></path>
+                    </svg>
+                </div>
+                <div class="text-left">
+                    <h3 class="m-0 text-slate-500 text-xs font-bold uppercase tracking-wider">Con Atraso</h3>
+                    <div class="text-4xl font-bold mt-3 text-text" id="val-delayed">0</div>
+                </div>
             </div>
-          </div>
-        </header>
 
-        <main class="max-w-[1600px] mx-auto px-4 sm:px-6 py-6 space-y-6">
-          
-          <div>
-            <h2 class="text-sm font-semibold text-muted-foreground uppercase tracking-wide mb-3">Resumen General</h2>
-            <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
-              <div class="flex items-center gap-3 rounded-lg bg-card border p-3 transition-all border-border shadow-sm">
-                <div class="text-primary">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-package h-5 w-5"><path d="M11 21.73a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73z"></path><path d="M12 22V12"></path><path d="m3.3 7 7.703 4.734a2 2 0 0 0 1.994 0L20.7 7"></path><path d="m7.5 4.27 9 5.15"></path></svg>
+            <div class="bg-surface p-6 rounded-xl shadow-sm flex-1 cursor-pointer border-2 border-transparent hover:border-red-500 hover:-translate-y-1 transition-all duration-200 flex items-center justify-center gap-4" onclick="showDetails('status', 'ofreciendo')">
+                <div class="text-red-500 flex-shrink-0">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-chart-column h-10 w-10">
+                        <path d="M3 3v16a2 2 0 0 0 2 2h16"></path>
+                        <path d="M18 17V9"></path>
+                        <path d="M13 17V5"></path>
+                        <path d="M8 17v-3"></path>
+                    </svg>
                 </div>
-                <div>
-                  <p class="text-xs text-muted-foreground font-medium">Total Viajes</p>
-                  <p class="text-lg font-bold font-mono">31</p>
+                <div class="text-left">
+                    <h3 class="m-0 text-slate-500 text-xs font-bold uppercase tracking-wider">Incidencias</h3>
+                    <div class="text-4xl font-bold mt-3 text-text" id="val-incidence">0</div>
                 </div>
-              </div>
-              
-              <div class="flex items-center gap-3 rounded-lg bg-card border p-3 transition-all border-border shadow-sm">
-                <div class="text-success">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-clock h-5 w-5"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
-                </div>
-                <div>
-                  <p class="text-xs text-muted-foreground font-medium">A Tiempo</p>
-                  <p class="text-lg font-bold font-mono">17</p>
-                </div>
-              </div>
-              
-              <div class="flex items-center gap-3 rounded-lg bg-card border p-3 transition-all border-border shadow-sm">
-                <div class="text-destructive">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-triangle-alert h-5 w-5"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3"></path><path d="M12 9v4"></path><path d="M12 17h.01"></path></svg>
-                </div>
-                <div>
-                  <p class="text-xs text-muted-foreground font-medium">Atrasados</p>
-                  <p class="text-lg font-bold font-mono">3</p>
-                </div>
-              </div>
-
-              <div class="flex items-center gap-3 rounded-lg bg-card border p-3 transition-all border-border shadow-sm">
-                <div class="text-warning">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-chart-column h-5 w-5"><path d="M3 3v16a2 2 0 0 0 2 2h16"></path><path d="M18 17V9"></path><path d="M13 17V5"></path><path d="M8 17v-3"></path></svg>
-                </div>
-                <div>
-                  <p class="text-xs text-muted-foreground font-medium">Incidencias</p>
-                  <p class="text-lg font-bold font-mono">2</p>
-                </div>
-              </div>
-
-              <div class="flex items-center gap-3 rounded-lg bg-card border p-3 transition-all border-border shadow-sm">
-                <div class="text-muted-foreground">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-truck h-5 w-5"><path d="M14 18V6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v11a1 1 0 0 0 1 1h2"></path><path d="M15 18H9"></path><path d="M19 18h2a1 1 0 0 0 1-1v-3.65a1 1 0 0 0-.22-.624l-3.48-4.35A1 1 0 0 0 17.52 8H14"></path><circle cx="17" cy="18" r="2"></circle><circle cx="7" cy="18" r="2"></circle></svg>
-                </div>
-                <div>
-                  <p class="text-xs text-muted-foreground font-medium">Pendientes</p>
-                  <p class="text-lg font-bold font-mono">26</p>
-                </div>
-              </div>
             </div>
-          </div>
 
-          <div>
-            <h2 class="text-sm font-semibold text-muted-foreground uppercase tracking-wide mb-3">Modalidades</h2>
-            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-              
-              <button class="group relative overflow-hidden rounded-xl bg-card border border-border p-5 text-left transition-all duration-300 hover:border-primary/40 shadow-sm hover:shadow-md">
-                <div class="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-primary to-warning"></div>
-                <div class="flex items-start justify-between mb-4">
-                  <div class="flex items-center gap-3">
-                    <span class="text-2xl">📦</span>
-                    <h3 class="text-base font-bold text-foreground">Ultima Milla</h3>
-                  </div>
-                  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-chevron-right h-5 w-5 text-muted-foreground group-hover:text-primary transition-colors"><path d="m9 18 6-6-6-6"></path></svg>
+            <div class="bg-surface p-6 rounded-xl shadow-sm flex-1 cursor-pointer border-2 border-transparent hover:border-blue-500 hover:-translate-y-1 transition-all duration-200 flex items-center justify-center gap-4" onclick="showDetails('status', 'pendiente')">
+                <div class="text-blue-500 flex-shrink-0">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-hourglass h-10 w-10">
+                        <path d="M5 22h14"></path>
+                        <path d="M5 2h14"></path>
+                        <path d="M17 22v-4.172a2 2 0 0 0-.586-1.414L12 12l-4.414 4.414A2 2 0 0 0 7 17.828V22"></path>
+                        <path d="M7 2v4.172a2 2 0 0 0 .586 1.414L12 12l4.414-4.414A2 2 0 0 0 17 6.172V2"></path>
+                    </svg>
                 </div>
-                <div class="space-y-2">
-                  <div class="flex items-center justify-between"><span class="flex items-center gap-1.5 text-xs text-muted-foreground">Total</span><span class="text-sm font-bold font-mono">25</span></div>
-                  <div class="flex items-center justify-between"><span class="flex items-center gap-1.5 text-xs text-success">A Tiempo</span><span class="text-sm font-bold font-mono text-success">15</span></div>
-                  <div class="flex items-center justify-between"><span class="flex items-center gap-1.5 text-xs text-destructive">Atrasados</span><span class="text-sm font-bold font-mono text-destructive">3</span></div>
-                  <div class="flex items-center justify-between"><span class="flex items-center gap-1.5 text-xs text-muted-foreground">Pendientes</span><span class="text-sm font-bold font-mono">20</span></div>
+                <div class="text-left">
+                    <h3 class="m-0 text-slate-500 text-xs font-bold uppercase tracking-wider">Pendientes</h3>
+                    <div class="text-4xl font-bold mt-3 text-text" id="val-pendent">0</div>
                 </div>
-                <div class="mt-4 flex h-1.5 rounded-full overflow-hidden bg-muted">
-                  <div class="bg-success transition-all" style="width: 60%;"></div>
-                  <div class="bg-destructive transition-all" style="width: 12%;"></div>
-                  <div class="bg-warning transition-all" style="width: 8%;"></div>
-                </div>
-              </button>
-
-              <button class="group relative overflow-hidden rounded-xl bg-card border border-border p-5 text-left transition-all duration-300 hover:border-blue-500/40 shadow-sm hover:shadow-md">
-                <div class="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-blue-500 to-cyan-400"></div>
-                <div class="flex items-start justify-between mb-4">
-                  <div class="flex items-center gap-3">
-                    <span class="text-2xl">🚚</span>
-                    <h3 class="text-base font-bold text-foreground">TR1</h3>
-                  </div>
-                  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-chevron-right h-5 w-5 text-muted-foreground group-hover:text-blue-500 transition-colors"><path d="m9 18 6-6-6-6"></path></svg>
-                </div>
-                <div class="space-y-2">
-                  <div class="flex items-center justify-between"><span class="flex items-center gap-1.5 text-xs text-muted-foreground">Total</span><span class="text-sm font-bold font-mono">1</span></div>
-                  <div class="flex items-center justify-between"><span class="flex items-center gap-1.5 text-xs text-success">A Tiempo</span><span class="text-sm font-bold font-mono text-success">0</span></div>
-                  <div class="flex items-center justify-between"><span class="flex items-center gap-1.5 text-xs text-destructive">Atrasados</span><span class="text-sm font-bold font-mono text-destructive">0</span></div>
-                  <div class="flex items-center justify-between"><span class="flex items-center gap-1.5 text-xs text-muted-foreground">Pendientes</span><span class="text-sm font-bold font-mono">1</span></div>
-                </div>
-                <div class="mt-4 flex h-1.5 rounded-full overflow-hidden bg-muted">
-                  <div class="bg-success transition-all" style="width: 0%;"></div>
-                  <div class="bg-destructive transition-all" style="width: 0%;"></div>
-                  <div class="bg-warning transition-all" style="width: 0%;"></div>
-                </div>
-              </button>
-
-              <button class="group relative overflow-hidden rounded-xl bg-card border border-border p-5 text-left transition-all duration-300 hover:border-emerald-500/40 shadow-sm hover:shadow-md">
-                <div class="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-emerald-500 to-teal-400"></div>
-                <div class="flex items-start justify-between mb-4">
-                  <div class="flex items-center gap-3">
-                    <span class="text-2xl">🚛</span>
-                    <h3 class="text-base font-bold text-foreground">TR2</h3>
-                  </div>
-                  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-chevron-right h-5 w-5 text-muted-foreground group-hover:text-emerald-500 transition-colors"><path d="m9 18 6-6-6-6"></path></svg>
-                </div>
-                <div class="space-y-2">
-                  <div class="flex items-center justify-between"><span class="flex items-center gap-1.5 text-xs text-muted-foreground">Total</span><span class="text-sm font-bold font-mono">0</span></div>
-                  <div class="flex items-center justify-between"><span class="flex items-center gap-1.5 text-xs text-success">A Tiempo</span><span class="text-sm font-bold font-mono text-success">0</span></div>
-                  <div class="flex items-center justify-between"><span class="flex items-center gap-1.5 text-xs text-destructive">Atrasados</span><span class="text-sm font-bold font-mono text-destructive">0</span></div>
-                  <div class="flex items-center justify-between"><span class="flex items-center gap-1.5 text-xs text-muted-foreground">Pendientes</span><span class="text-sm font-bold font-mono">0</span></div>
-                </div>
-              </button>
-
-              <button class="group relative overflow-hidden rounded-xl bg-card border border-border p-5 text-left transition-all duration-300 hover:border-purple-500/40 shadow-sm hover:shadow-md">
-                <div class="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-purple-500 to-indigo-400"></div>
-                <div class="flex items-start justify-between mb-4">
-                  <div class="flex items-center gap-3">
-                    <span class="text-2xl">🚆</span>
-                    <h3 class="text-base font-bold text-foreground">INTERMODAL</h3>
-                  </div>
-                  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-chevron-right h-5 w-5 text-muted-foreground group-hover:text-purple-500 transition-colors"><path d="m9 18 6-6-6-6"></path></svg>
-                </div>
-                <div class="space-y-2">
-                  <div class="flex items-center justify-between"><span class="flex items-center gap-1.5 text-xs text-muted-foreground">Total</span><span class="text-sm font-bold font-mono">0</span></div>
-                  <div class="flex items-center justify-between"><span class="flex items-center gap-1.5 text-xs text-success">A Tiempo</span><span class="text-sm font-bold font-mono text-success">0</span></div>
-                  <div class="flex items-center justify-between"><span class="flex items-center gap-1.5 text-xs text-destructive">Atrasados</span><span class="text-sm font-bold font-mono text-destructive">0</span></div>
-                  <div class="flex items-center justify-between"><span class="flex items-center gap-1.5 text-xs text-muted-foreground">Pendientes</span><span class="text-sm font-bold font-mono">0</span></div>
-                </div>
-              </button>
-
-              <button class="group relative overflow-hidden rounded-xl bg-card border border-border p-5 text-left transition-all duration-300 hover:border-rose-500/40 shadow-sm hover:shadow-md">
-                <div class="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-rose-500 to-pink-400"></div>
-                <div class="flex items-start justify-between mb-4">
-                  <div class="flex items-center gap-3">
-                    <span class="text-2xl">🇺🇸</span>
-                    <h3 class="text-base font-bold text-foreground">USA IMPO EXPO</h3>
-                  </div>
-                  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-chevron-right h-5 w-5 text-muted-foreground group-hover:text-rose-500 transition-colors"><path d="m9 18 6-6-6-6"></path></svg>
-                </div>
-                <div class="space-y-2">
-                  <div class="flex items-center justify-between"><span class="flex items-center gap-1.5 text-xs text-muted-foreground">Total</span><span class="text-sm font-bold font-mono">0</span></div>
-                  <div class="flex items-center justify-between"><span class="flex items-center gap-1.5 text-xs text-success">A Tiempo</span><span class="text-sm font-bold font-mono text-success">0</span></div>
-                  <div class="flex items-center justify-between"><span class="flex items-center gap-1.5 text-xs text-destructive">Atrasados</span><span class="text-sm font-bold font-mono text-destructive">0</span></div>
-                  <div class="flex items-center justify-between"><span class="flex items-center gap-1.5 text-xs text-muted-foreground">Pendientes</span><span class="text-sm font-bold font-mono">0</span></div>
-                </div>
-              </button>
-
-              <button class="group relative overflow-hidden rounded-xl bg-card border border-border p-5 text-left transition-all duration-300 hover:border-amber-500/40 shadow-sm hover:shadow-md">
-                <div class="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-amber-600 to-yellow-400"></div>
-                <div class="flex items-start justify-between mb-4">
-                  <div class="flex items-center gap-3">
-                    <span class="text-2xl">🏭</span>
-                    <h3 class="text-base font-bold text-foreground">FURGON</h3>
-                  </div>
-                  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-chevron-right h-5 w-5 text-muted-foreground group-hover:text-amber-500 transition-colors"><path d="m9 18 6-6-6-6"></path></svg>
-                </div>
-                <div class="space-y-2">
-                  <div class="flex items-center justify-between"><span class="flex items-center gap-1.5 text-xs text-muted-foreground">Total</span><span class="text-sm font-bold font-mono">5</span></div>
-                  <div class="flex items-center justify-between"><span class="flex items-center gap-1.5 text-xs text-success">A Tiempo</span><span class="text-sm font-bold font-mono text-success">2</span></div>
-                  <div class="flex items-center justify-between"><span class="flex items-center gap-1.5 text-xs text-destructive">Atrasados</span><span class="text-sm font-bold font-mono text-destructive">0</span></div>
-                  <div class="flex items-center justify-between"><span class="flex items-center gap-1.5 text-xs text-muted-foreground">Pendientes</span><span class="text-sm font-bold font-mono">5</span></div>
-                </div>
-                <div class="mt-4 flex h-1.5 rounded-full overflow-hidden bg-muted">
-                  <div class="bg-success transition-all" style="width: 40%;"></div>
-                </div>
-              </button>
-
             </div>
-          </div>
-        </main>
+        </div>
+
+        <h2 class="text-2xl font-bold text-primary flex items-center gap-2 pb-6">
+            Actividad por Estado
+        </h2>
+
+        <div id="main-view" class="bg-surface p-6 rounded-xl shadow-sm border border-border mb-6">
+            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 gap-4">
+                <div class="flex bg-slate-100 p-1 rounded-lg border border-border">
+                    <button id="btnOrigin" class="px-4 py-1.5 text-sm font-bold rounded-md bg-white shadow-sm text-slate-800 transition-all" onclick="toggleMapMode('origen')">
+                        Por Origen
+                    </button>
+                    <button id="btnDestination" class="px-4 py-1.5 text-sm font-medium rounded-md text-slate-500 hover:text-slate-800 transition-all" onclick="toggleMapMode('destino')">
+                        Por Destino
+                    </button>
+                </div>
+            </div>
+            <div id="map_div" class="w-full h-[100%] rounded-lg overflow-hidden bg-slate-50"></div>
+        </div>
+
+        <div id="detail-view" class="bg-surface p-6 rounded-xl shadow-sm border border-border mb-6 hidden">
+            
+            <div class="flex items-center justify-between mb-6">
+                <h3 id="table-title" class="text-lg font-bold text-primary">Detalle de Viajes</h3>
+                <div class="flex flex-row gap-5">
+                    <button id="exportCsvBtn" class="flex flex-row bg-green-600 hover:bg-green-700 text-white font-medium py-2 px-4 rounded-md transition-colors text-sm items-center gap-2" onclick="exportToCSV()">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-download">
+                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                            <polyline points="7 10 12 15 17 10"></polyline>
+                            <line x1="12" x2="12" y1="15" y2="3"></line>
+                        </svg>
+                        Exportar a CSV
+                    </button>
+                    <button class="bg-slate-100 hover:bg-slate-200 text-slate-700 font-medium py-2 px-4 rounded-md transition-colors text-sm" onclick="goBackToMap()">
+                        ← Volver al Mapa
+                    </button>
+                </div>
+            </div>
+            
+            <div class="overflow-x-auto">
+                <table class="w-full text-sm text-left">
+                    <thead class="text-xs text-slate-500 uppercase bg-slate-50 border-b border-border">
+                        <tr>
+                            <th class="px-6 py-4 font-semibold">Estado</th>
+                            <th class="px-6 py-4 font-semibold">Origen</th>
+                            <th class="px-6 py-4 font-semibold">Destino</th>
+                            <th class="px-6 py-4 font-semibold">Salida</th>
+                            <th class="px-6 py-4 font-semibold">Carga</th>
+                            <th class="px-6 py-4 font-semibold">Contacto</th>
+                        </tr>
+                    </thead>
+                    <tbody id="detail-table-body" class="divide-y divide-border">
+                        </tbody>
+                </table>
+            </div>
+        </div>
     </div>
 
-    <script type="module" src="auth.js"></script>
+    <script type="module" src="./dashboard_map.js"></script>
 </body>
 </html>
