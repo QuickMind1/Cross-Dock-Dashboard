@@ -48,8 +48,6 @@ function initFirebaseListener() {
     onSnapshot(tripsRef, (snapshot) => {
         allTrips = [];
         let onTime = 0, delayed = 0, incidence = 0, pendent = 0;
-        
-        let stateCounts = {}; 
 
         snapshot.forEach((doc) => {
             const trip = doc.data();
@@ -59,12 +57,6 @@ function initFirebaseListener() {
             if (trip.estado === 'buscando') delayed++;
             if (trip.estado === 'ofreciendo') incidence++;
             if (trip.estado === 'pendiente') pendent++;
-
-            const targetLocation = currentMapMode === 'origen' ? trip.origen : trip.destino;
-            const stateCode = mapOriginToStateCode(targetLocation);
-            if (stateCode) {
-                stateCounts[stateCode] = (stateCounts[stateCode] || 0) + 1;
-            }
         });
 
         document.getElementById('val-total-trips').innerText = allTrips.length;
@@ -73,8 +65,22 @@ function initFirebaseListener() {
         document.getElementById('val-incidence').innerText = incidence;
         document.getElementById('val-pendent').innerText = pendent;
 
-        drawMap(stateCounts);
+        processDataAndDrawMap();
     });
+}
+
+function processDataAndDrawMap() {
+    let stateCounts = {};
+
+    allTrips.forEach((trip) => {
+        const targetLocation = currentMapMode === 'origen' ? trip.origen : trip.destino;
+        const stateCode = mapOriginToStateCode(targetLocation);
+        if (stateCode) {
+            stateCounts[stateCode] = (stateCounts[stateCode] || 0) + 1;
+        }
+    });
+
+    drawMap(stateCounts);
 }
 
 function drawMap(stateCounts) {
