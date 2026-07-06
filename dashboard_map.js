@@ -53,9 +53,12 @@ function initFirebaseListener() {
             const trip = doc.data();
             allTrips.push(trip);
 
+            const missingDriver = !trip.transportista || (typeof trip.transportista === 'string' && trip.transportista.trim() === '');
+            const unconfirmed = trip.estado === 'ofreciendo';
+
+            if (missingDriver || unconfirmed) incidence++;
             if (trip.estado === 'coordinando') onTime++;
             if (trip.estado === 'buscando') delayed++;
-            if (trip.estado === 'ofreciendo') incidence++;
             if (trip.estado === 'pendiente') pendent++;
         });
 
@@ -175,8 +178,18 @@ window.showDetails = function(filterType, filterValue) {
     let filteredTrips = [];
 
     if (filterType === 'status') {
-        document.getElementById('table-title').innerText = `Viajes filtrados por estado: ${filterValue.toUpperCase()}`;
-        currentFilteredTrips = allTrips.filter(t => t.estado === filterValue);
+        if (filterValue === 'incidencias') {
+            document.getElementById('table-title').innerText = 'Viajes filtrados que presentan al menos una incidencia';
+            currentFilteredTrips = allTrips.filter(t => {
+                const missingDriver = !t.transportista || (typeof t.transportista === 'string' && t.transportista.trim() === '');
+                const unconfirmed = t.estado === 'ofreciendo';
+
+                return missingDriver || unconfirmed;
+            });
+        } else {
+            document.getElementById('table-title').innerText = `Viajes filtrados por estado: ${filterValue.toUpperCase()}`;
+            currentFilteredTrips = allTrips.filter(t => t.estado === filterValue);
+        }
         currentFilterName = filterValue;
     } 
     else if (filterType === 'state') {
@@ -213,8 +226,14 @@ window.showDetails = function(filterType, filterValue) {
             <td class="px-6 py-4 text-slate-600">${trip.destino}</td>
             <td class="px-6 py-4 text-slate-600">${trip.fecha_salida}</td>
             <td class="px-6 py-4 text-slate-600">${trip.tipo_carga || 'N/A'}</td>
-            <td class="px-6 py-4 text-slate-600">${trip.nombreContacto || 'N/A'}</td>
         `;
+        let driverCell = '<td class="px-6 py-4';
+        if (trip.transportista) {
+            driverCell += ' text-slate-600">';
+        } else {
+            driverCell += ' text-red-600">';
+        }
+        row.innerHTML += `${driverCell}${trip.transportista || 'Sin Asignar'}</td>`;
         tableBody.appendChild(row);
     });
 };
@@ -225,7 +244,7 @@ window.exportToCSV = function() {
         return;
     }
 
-    const headers = ["Estado", "Origen", "Destino", "Fecha Salida", "Tipo Carga", "Contacto"];
+    const headers = ["Estado", "Origen", "Destino", "Fecha Salida", "Tipo Carga", "Transportista"];
     const csvRows = [headers.join(",")];
 
     currentFilteredTrips.forEach(trip => {
@@ -235,7 +254,7 @@ window.exportToCSV = function() {
             `"${trip.destino || ''}"`,
             `"${trip.fecha_salida || ''}"`,
             `"${trip.tipo_carga || 'N/A'}"`,
-            `"${trip.nombreContacto || 'N/A'}"`
+            `"${trip.transportista || 'Sin asignar'}"`
         ];
         csvRows.push(row.join(","));
     });
