@@ -333,6 +333,7 @@ function buildTripDetails(trip) {
 
     return `
         <div>
+            ${buildStatusNotice(trip)}
             <h4 class="text-sm font-bold text-primary mb-3 flex items-center gap-2">
                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                     <circle cx="12" cy="12" r="10"></circle>
@@ -343,6 +344,61 @@ function buildTripDetails(trip) {
             </h4>
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
                 ${cards}
+            </div>
+        </div>
+    `;
+}
+
+function buildStatusNotice(trip) {
+    const notices = {
+        buscando: {
+            style: 'bg-amber-50 border-amber-300 text-amber-800',
+            iconColor: 'text-amber-500',
+            title: 'Búsqueda de transportistas en curso',
+            message: 'Este viaje aún no cuenta con todos los transportistas solicitados. Se sigue buscando cobertura para completar la asignación.',
+            icon: '<circle cx="12" cy="12" r="10"></circle><path d="M12 8v4"></path><path d="M12 16h.01"></path>'
+        },
+        coordinado: {
+            style: 'bg-sky-50 border-sky-300 text-sky-800',
+            iconColor: 'text-sky-500',
+            title: 'Viaje coordinado',
+            message: 'Este viaje ya está coordinado. La fecha de salida se encuentra programada para una fecha futura y todos los transportistas están asignados.',
+            icon: '<path d="M20 6 9 17l-5-5"></path>'
+        },
+        atrasado: {
+            style: 'bg-red-50 border-red-300 text-red-800',
+            iconColor: 'text-red-500',
+            title: 'Viaje con atraso',
+            message: 'Este viaje no ha sido completado y ya superó la fecha de llegada estimada (7 días por defecto). Se recomienda revisar el estatus con el transportista.',
+            icon: '<path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3"></path><path d="M12 9v4"></path><path d="M12 17h.01"></path>'
+        },
+        completado: {
+            style: 'bg-emerald-50 border-emerald-300 text-emerald-800',
+            iconColor: 'text-emerald-500',
+            title: 'Viaje completado',
+            message: 'Este viaje se ha completado con éxito. La carga fue entregada dentro del periodo establecido.',
+            icon: '<circle cx="12" cy="12" r="10"></circle><path d="m9 12 2 2 4-4"></path>'
+        },
+        tiempo: {
+            style: 'bg-green-50 border-green-300 text-green-800',
+            iconColor: 'text-green-500',
+            title: 'Viaje en tiempo',
+            message: 'Este viaje se encuentra en servicio y avanza dentro del tiempo estimado hacia su destino.',
+            icon: '<circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline>'
+        }
+    };
+
+    const notice = notices[trip.estado];
+    if (!notice) return '';
+
+    return `
+        <div class="flex items-start gap-3 p-3 mb-4 border rounded-lg ${notice.style}">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="flex-shrink-0 mt-0.5 ${notice.iconColor}">
+                ${notice.icon}
+            </svg>
+            <div class="text-sm leading-snug">
+                <div class="font-semibold">${notice.title}</div>
+                <div class="opacity-90">${notice.message}</div>
             </div>
         </div>
     `;
