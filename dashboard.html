@@ -84,7 +84,7 @@
                 </div>
             </div>
 
-            <div class="bg-surface p-6 rounded-xl shadow-sm flex-1 cursor-pointer border-2 border-transparent hover:border-green-500 hover:-translate-y-1 transition-all duration-200 flex items-center justify-center gap-4" onclick="showDetails('status', 'coordinando')">
+            <div class="bg-surface p-6 rounded-xl shadow-sm flex-1 cursor-pointer border-2 border-transparent hover:border-green-500 hover:-translate-y-1 transition-all duration-200 flex items-center justify-center gap-4" onclick="showDetails('status', 'coordinado')">
                 <div class="text-green-500 flex-shrink-0">
                     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-clock h-10 w-10">
                         <circle cx="12" cy="12" r="10"></circle>
@@ -97,7 +97,7 @@
                 </div>
             </div>
             
-            <div class="bg-surface p-6 rounded-xl shadow-sm flex-1 cursor-pointer border-2 border-transparent hover:border-amber-500 hover:-translate-y-1 transition-all duration-200 flex items-center justify-center gap-4" onclick="showDetails('status', 'buscando')">
+            <div class="bg-surface p-6 rounded-xl shadow-sm flex-1 cursor-pointer border-2 border-transparent hover:border-amber-500 hover:-translate-y-1 transition-all duration-200 flex items-center justify-center gap-4" onclick="showDetails('status', 'atrasado')">
                 <div class="text-amber-500 flex-shrink-0">
                     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-triangle-alert h-10 w-10">
                         <path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3"></path>
@@ -111,7 +111,7 @@
                 </div>
             </div>
 
-            <div class="bg-surface p-6 rounded-xl shadow-sm flex-1 cursor-pointer border-2 border-transparent hover:border-red-500 hover:-translate-y-1 transition-all duration-200 flex items-center justify-center gap-4" onclick="showDetails('status', 'incidencias')">
+            <div class="bg-surface p-6 rounded-xl shadow-sm flex-1 cursor-pointer border-2 border-transparent hover:border-red-500 hover:-translate-y-1 transition-all duration-200 flex items-center justify-center gap-4" onclick="showDetails('status', 'buscando')">
                 <div class="text-red-500 flex-shrink-0">
                     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-chart-column h-10 w-10">
                         <path d="M3 3v16a2 2 0 0 0 2 2h16"></path>
@@ -121,12 +121,12 @@
                     </svg>
                 </div>
                 <div class="text-left">
-                    <h3 class="m-0 text-slate-500 text-xs font-bold uppercase tracking-wider">Incidencias</h3>
+                    <h3 class="m-0 text-slate-500 text-xs font-bold uppercase tracking-wider">Buscando</h3>
                     <div class="text-4xl font-bold mt-3 text-text" id="val-incidence">0</div>
                 </div>
             </div>
 
-            <div class="bg-surface p-6 rounded-xl shadow-sm flex-1 cursor-pointer border-2 border-transparent hover:border-blue-500 hover:-translate-y-1 transition-all duration-200 flex items-center justify-center gap-4" onclick="showDetails('status', 'pendiente')">
+            <div class="bg-surface p-6 rounded-xl shadow-sm flex-1 cursor-pointer border-2 border-transparent hover:border-blue-500 hover:-translate-y-1 transition-all duration-200 flex items-center justify-center gap-4" onclick="showDetails('status', 'completado')">
                 <div class="text-blue-500 flex-shrink-0">
                     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-hourglass h-10 w-10">
                         <path d="M5 22h14"></path>
@@ -136,7 +136,7 @@
                     </svg>
                 </div>
                 <div class="text-left">
-                    <h3 class="m-0 text-slate-500 text-xs font-bold uppercase tracking-wider">Pendientes</h3>
+                    <h3 class="m-0 text-slate-500 text-xs font-bold uppercase tracking-wider">Completados</h3>
                     <div class="text-4xl font-bold mt-3 text-text" id="val-pendent">0</div>
                 </div>
             </div>
@@ -188,7 +188,7 @@
                             <th class="px-6 py-4 font-semibold">Destino</th>
                             <th class="px-6 py-4 font-semibold">Salida</th>
                             <th class="px-6 py-4 font-semibold">Carga</th>
-                            <!-- <th class="px-6 py-4 font-semibold">Transportista</th> -->
+                            <th class="px-6 py-4 font-semibold">Transportistas</th>
                         </tr>
                     </thead>
                     <tbody id="detail-table-body" class="divide-y divide-border">

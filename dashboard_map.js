@@ -47,26 +47,34 @@ function initFirebaseListener() {
     
     onSnapshot(tripsRef, (snapshot) => {
         allTrips = [];
-        let onTime = 0, delayed = 0, incidence = 0, pendent = 0;
+        let coordinado = 0, buscando = 0, atrasado = 0, completado = 0, tiempo = 0;
 
         snapshot.forEach((doc) => {
             const trip = doc.data();
             allTrips.push(trip);
 
-            const missingDriver = !trip.transportista || (typeof trip.transportista === 'string' && trip.transportista.trim() === '');
-            const unconfirmed = trip.estado === 'ofreciendo';
+            // const missingDriver = !trip.transportista || (typeof trip.transportista === 'string' && trip.transportista.trim() === '');
+            // const unconfirmed = trip.estado === 'ofreciendo';
 
-            if (missingDriver || unconfirmed) incidence++;
-            if (trip.estado === 'coordinando') onTime++;
-            if (trip.estado === 'buscando') delayed++;
-            if (trip.estado === 'pendiente') pendent++;
+            // if (missingDriver || unconfirmed) incidence++;
+
+            if (trip.estado === 'coordinado') coordinado++;
+            if (trip.estado === 'buscando') buscando++;
+            if (trip.estado === 'atrasado') atrasado++;
+            if (trip.estado === 'completado') completado++;
+            if (trip.estado === 'tiempo') tiempo++;
         });
 
         document.getElementById('val-total-trips').innerText = allTrips.length;
-        document.getElementById('val-ontime').innerText = onTime;
-        document.getElementById('val-delayed').innerText = delayed;
-        document.getElementById('val-incidence').innerText = incidence;
-        document.getElementById('val-pendent').innerText = pendent;
+
+        /*Los viajes que han sido coordinados (ya tienen todos los transportistas asginados) 
+        y los que ya fueron coordinados pero estan en servicio y antes de la fecha de llegada 
+        estimada, son considerados a tiempo. */
+        document.getElementById('val-ontime').innerText = tiempo + coordinado; 
+
+        document.getElementById('val-delayed').innerText = atrasado;
+        document.getElementById('val-incidence').innerText = buscando;
+        document.getElementById('val-pendent').innerText = completado;
 
         processDataAndDrawMap();
     });
@@ -237,6 +245,8 @@ window.showDetails = function(filterType, filterValue) {
                 }
             </td>
             <td class="px-6 py-4 text-slate-600">${trip.tipo_carga || 'N/A'}</td>
+            <td class="px-6 py-4 text-slate-600">${trip.cantidadActualDeTransportistas}/${trip.cantidadTransportistas}</td>
+            
         `;
 
         // let driverCell = '<td class="px-6 py-4';
