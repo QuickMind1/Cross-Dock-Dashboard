@@ -47,6 +47,7 @@ if (isLoginPage) {
 
     tabLogin.addEventListener('click', () => {
         loginForm.classList.remove('hidden');
+        console.log('Sign up tab pressed');
         signupForm.classList.add('hidden');
 
         tabLogin.classList.remove('text-gray-500');
@@ -60,6 +61,7 @@ if (isLoginPage) {
     })
 
     tabSignup.addEventListener('click', () => {
+        console.log('Sign up tab pressed');
         loginForm.classList.add('hidden');
         signupForm.classList.remove('hidden');
 
@@ -110,6 +112,7 @@ if (isLoginPage) {
     })
 
     forgotPasswordBtn.addEventListener('click', (e) => {
+        console.log("Pressed");
         e.preventDefault();
         errorMsg.classList.add('hidden');
         successMsg.classList.add('hidden');

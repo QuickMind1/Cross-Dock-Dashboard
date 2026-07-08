@@ -185,6 +185,8 @@ window.showDetails = function(filterType, filterValue) {
                 const unconfirmed = t.estado === 'ofreciendo';
 
                 return missingDriver || unconfirmed;
+
+                // Change later to complete and get another data for check the tranportistas needed
             });
         } else {
             document.getElementById('table-title').innerText = `Viajes filtrados por estado: ${filterValue.toUpperCase()}`;
@@ -207,6 +209,7 @@ window.showDetails = function(filterType, filterValue) {
     }
 
     currentFilteredTrips.forEach(trip => {
+        console.log(trip.fecha_salida)
         
         let badgeStyle = "bg-slate-100 text-slate-800";
         if(trip.estado === 'coordinando') badgeStyle = "bg-green-100 text-green-800";
@@ -224,16 +227,25 @@ window.showDetails = function(filterType, filterValue) {
             </td>
             <td class="px-6 py-4 font-medium text-slate-800">${trip.origen}</td>
             <td class="px-6 py-4 text-slate-600">${trip.destino}</td>
-            <td class="px-6 py-4 text-slate-600">${trip.fecha_salida}</td>
+            <td class="px-6 py-4 text-slate-600">${
+                trip.fecha_salida 
+                    ? new Date(trip.fecha_salida).toLocaleString('es-MX', { 
+                        day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit', 
+                        timeZone: 'America/Mexico_City' 
+                    })
+                    : 'N/A'
+                }
+            </td>
             <td class="px-6 py-4 text-slate-600">${trip.tipo_carga || 'N/A'}</td>
         `;
-        let driverCell = '<td class="px-6 py-4';
-        if (trip.transportista) {
-            driverCell += ' text-slate-600">';
-        } else {
-            driverCell += ' text-red-600">';
-        }
-        row.innerHTML += `${driverCell}${trip.transportista || 'Sin Asignar'}</td>`;
+
+        // let driverCell = '<td class="px-6 py-4';
+        // if (trip.transportista) {
+        //     driverCell += ' text-slate-600">';
+        // } else {
+        //     driverCell += ' text-red-600">';
+        // }
+        // row.innerHTML += `${driverCell}${trip.transportista || 'Sin Asignar'}</td>`;
         tableBody.appendChild(row);
     });
 };
