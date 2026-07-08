@@ -216,25 +216,32 @@ window.showDetails = function(filterType, filterValue) {
         currentFilterName = "all_trips";
     }
 
-    currentFilteredTrips.forEach(trip => {
-        console.log(trip.fecha_salida)
-        
+    currentFilteredTrips.forEach((trip, index) => {
         let badgeStyle = "bg-slate-100 text-slate-800";
-        if(trip.estado === 'coordinando') badgeStyle = "bg-green-100 text-green-800";
+        if(trip.estado === 'coordinando' || trip.estado === 'coordinado') badgeStyle = "bg-green-100 text-green-800";
         if(trip.estado === 'buscando') badgeStyle = "bg-amber-100 text-amber-800";
         if(trip.estado === 'ofreciendo') badgeStyle = "bg-red-100 text-red-800";
+        if(trip.estado === 'atrasado') badgeStyle = "bg-red-100 text-red-800";
         if(trip.estado === 'pendiente') badgeStyle = "bg-blue-100 text-blue-800";
+        if(trip.estado === 'completado') badgeStyle = "bg-emerald-100 text-emerald-800";
+        if(trip.estado === 'tiempo') badgeStyle = "bg-sky-100 text-sky-800";
 
         const row = document.createElement('tr');
-        row.className = "hover:bg-slate-50 transition-colors";
+        row.className = "hover:bg-slate-50 transition-colors cursor-pointer";
+        row.dataset.tripIndex = index;
         row.innerHTML = `
+            <td class="px-4 py-4 w-8 text-slate-400">
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="expand-chevron transition-transform duration-200">
+                    <polyline points="9 18 15 12 9 6"></polyline>
+                </svg>
+            </td>
             <td class="px-6 py-4 whitespace-nowrap">
                 <span class="px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider ${badgeStyle}">
                     ${trip.estado}
                 </span>
             </td>
-            <td class="px-6 py-4 font-medium text-slate-800">${trip.origen}</td>
-            <td class="px-6 py-4 text-slate-600">${trip.destino}</td>
+            <td class="px-6 py-4 font-medium text-slate-800">${trip.origen || 'N/A'}</td>
+            <td class="px-6 py-4 text-slate-600">${trip.destino || 'N/A'}</td>
             <td class="px-6 py-4 text-slate-600">${
                 trip.fecha_salida 
                     ? new Date(trip.fecha_salida).toLocaleString('es-MX', { 
@@ -245,20 +252,110 @@ window.showDetails = function(filterType, filterValue) {
                 }
             </td>
             <td class="px-6 py-4 text-slate-600">${trip.tipo_carga || 'N/A'}</td>
-            <td class="px-6 py-4 text-slate-600">${trip.cantidadActualDeTransportistas}/${trip.cantidadTransportistas}</td>
-            
+            <td class="px-6 py-4 text-slate-600">${trip.cantidadActualDeTransportistas ?? 0}/${trip.cantidadTransportistas ?? 0}</td>
         `;
 
-        // let driverCell = '<td class="px-6 py-4';
-        // if (trip.transportista) {
-        //     driverCell += ' text-slate-600">';
-        // } else {
-        //     driverCell += ' text-red-600">';
-        // }
-        // row.innerHTML += `${driverCell}${trip.transportista || 'Sin Asignar'}</td>`;
+        const detailsRow = document.createElement('tr');
+        detailsRow.className = "trip-details-row hidden bg-slate-50/70";
+        detailsRow.innerHTML = `
+            <td colspan="7" class="px-6 py-5 border-l-4 border-icon">
+                ${buildTripDetails(trip)}
+            </td>
+        `;
+
+        row.addEventListener('click', () => {
+            const isHidden = detailsRow.classList.contains('hidden');
+            detailsRow.classList.toggle('hidden');
+            const chevron = row.querySelector('.expand-chevron');
+            if (chevron) {
+                chevron.style.transform = isHidden ? 'rotate(90deg)' : 'rotate(0deg)';
+            }
+            row.classList.toggle('bg-slate-50', isHidden);
+        });
+
         tableBody.appendChild(row);
+        tableBody.appendChild(detailsRow);
     });
 };
+
+function buildTripDetails(trip) {
+    const usedKeys = new Set([
+        'estado', 'origen', 'destino', 'fecha_salida',
+        'tipo_carga', 'cantidadActualDeTransportistas', 'cantidadTransportistas'
+    ]);
+
+    const prettyLabel = (key) => key
+        .replace(/([a-z])([A-Z])/g, '$1 $2')
+        .replace(/_/g, ' ')
+        .replace(/\b\w/g, c => c.toUpperCase());
+
+    const formatValue = (key, value) => {
+        if (value === null || value === undefined || value === '') return '<span class="text-slate-400 italic">N/A</span>';
+
+        if (Array.isArray(value)) {
+            if (value.length === 0) return '<span class="text-slate-400 italic">Vacío</span>';
+            return `<ul class="list-disc list-inside space-y-1">${
+                value.map(v => `<li>${typeof v === 'object' ? escapeHtml(JSON.stringify(v)) : escapeHtml(String(v))}</li>`).join('')
+            }</ul>`;
+        }
+
+        if (typeof value === 'object') {
+            if (value.seconds !== undefined && value.nanoseconds !== undefined) {
+                const date = new Date(value.seconds * 1000);
+                return escapeHtml(date.toLocaleString('es-MX', { timeZone: 'America/Mexico_City' }));
+            }
+            return `<pre class="text-xs bg-white p-2 rounded border border-border overflow-x-auto">${escapeHtml(JSON.stringify(value, null, 2))}</pre>`;
+        }
+
+        if (/fecha/i.test(key) && !isNaN(new Date(value).getTime())) {
+            return escapeHtml(new Date(value).toLocaleString('es-MX', {
+                day: '2-digit', month: 'short', year: 'numeric',
+                hour: '2-digit', minute: '2-digit',
+                timeZone: 'America/Mexico_City'
+            }));
+        }
+
+        return escapeHtml(String(value));
+    };
+
+    const extraEntries = Object.entries(trip).filter(([k]) => !usedKeys.has(k));
+
+    if (extraEntries.length === 0) {
+        return '<p class="text-sm text-slate-500 italic">No hay información adicional para este viaje.</p>';
+    }
+
+    const cards = extraEntries.map(([key, value]) => `
+        <div class="bg-white rounded-lg p-4 border border-border shadow-sm">
+            <div class="text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1">${escapeHtml(prettyLabel(key))}</div>
+            <div class="text-sm text-slate-800 break-words">${formatValue(key, value)}</div>
+        </div>
+    `).join('');
+
+    return `
+        <div>
+            <h4 class="text-sm font-bold text-primary mb-3 flex items-center gap-2">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <path d="M12 16v-4"></path>
+                    <path d="M12 8h.01"></path>
+                </svg>
+                Detalles del viaje
+            </h4>
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                ${cards}
+            </div>
+        </div>
+    `;
+}
+
+function escapeHtml(str) {
+    return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+}
 
 window.exportToCSV = function() {
     if (currentFilteredTrips.length === 0) {
