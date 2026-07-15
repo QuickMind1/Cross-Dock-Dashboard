@@ -122,7 +122,7 @@ function drawMap(stateCounts) {
         defaultColor: '#f5f5f5',
     };
 
-    const mapContainer = document.getElementById('map_div');
+    const mapContainer = document.getElementById('map-div');
 
     if (geoChart) {
         geoChart.clearChart();
@@ -538,6 +538,10 @@ window.goBackToMap = function() {
     processDataAndDrawMap();
 };
 
+// Deprecated: move the map logic using the geocode_api script
+// at the time a new trip is detected
+// TODO: retrieve the state code from the trip database record
+// to display it on the Geochart div
 function mapOriginToStateCode(origenString) {
     if (!origenString) return null;
     const str = origenString.toLowerCase();
