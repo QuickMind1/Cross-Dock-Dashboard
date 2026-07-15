@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Cross Dock - Panel de Control</title>
-    
+
     <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
 
@@ -29,29 +29,39 @@
     </script>
 </head>
 <body class="bg-background text-slate-800 font-sans min-h-screen">
-    <header class="bg-header p-5 text-white border-b border-border">
-        <div class="max-w-[1600px] mx-auto px-4 sm:px-6 py-3 flex items-center justify-between">
-            <img alt= "CrossDockLogo" src="./image_sources/cross_dock_logo.png" class="brightness-0 invert">
-            <div class="flex flex-col items-center">
-                <h3 class="text-lg font-semibold">Usuario:</h3>
-                <p id="user-label" class="text-md">username@domain.com</p>
+
+    <!-- ============ HEADER: sticky, wraps gracefully on small screens ============ -->
+    <header class="bg-header text-white border-b border-border sticky top-0 z-50">
+        <div class="max-w-[1600px] mx-auto px-4 sm:px-6 py-3 flex flex-wrap items-center justify-between gap-x-4 gap-y-3">
+
+            <!-- Logo: constrained height so a large source image never blows up the layout -->
+            <img alt="CrossDockLogo" src="./image_sources/cross_dock_logo.png"
+                 class="brightness-0 invert h-8 sm:h-10 w-auto flex-shrink-0">
+
+            <!-- User info: hidden on phones (shown in a compact chip instead), full on md+ -->
+            <div class="hidden md:flex flex-col items-center min-w-0">
+                <h3 class="text-sm font-semibold leading-tight">Usuario:</h3>
+                <p id="user-label" class="text-sm truncate max-w-[220px]" title="username@domain.com">username@domain.com</p>
             </div>
-            <div class="flex flex-row gap-7">
-                <a class="flex items-center gap-3 rounded-lg focus-visible:outline-none" href="#">
-                    <div class="bg-icon p-2 rounded-lg">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-truck h-5 w-5 text-primary-foreground">
-                        <path d="M14 18V6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v11a1 1 0 0 0 1 1h2"></path>
-                        <path d="M15 18H9"></path>
-                        <path d="M19 18h2a1 1 0 0 0 1-1v-3.65a1 1 0 0 0-.22-.624l-3.48-4.35A1 1 0 0 0 17.52 8H14"></path>
-                        <circle cx="17" cy="18" r="2"></circle><circle cx="7" cy="18" r="2"></circle>
-                    </svg>
+
+            <div class="flex flex-row items-center gap-3 sm:gap-5 lg:gap-7 min-w-0">
+                <a class="flex items-center gap-2 sm:gap-3 rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-icon min-w-0" href="#">
+                    <div class="bg-icon p-2 rounded-lg flex-shrink-0">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-truck h-5 w-5 text-primary-foreground">
+                            <path d="M14 18V6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v11a1 1 0 0 0 1 1h2"></path>
+                            <path d="M15 18H9"></path>
+                            <path d="M19 18h2a1 1 0 0 0 1-1v-3.65a1 1 0 0 0-.22-.624l-3.48-4.35A1 1 0 0 0 17.52 8H14"></path>
+                            <circle cx="17" cy="18" r="2"></circle><circle cx="7" cy="18" r="2"></circle>
+                        </svg>
                     </div>
-                    <div>
-                    <h1 class="text-lg font-bold tracking-tight">Cross Dock Dashboard</h1>
-                    <p class="text-xs text-nav-foreground/60">Modalidad Terrestre</p>
+                    <!-- Title text hidden on very small screens; the truck icon carries the brand -->
+                    <div class="hidden sm:block min-w-0">
+                        <h1 class="text-base lg:text-lg font-bold tracking-tight truncate">Cross Dock Dashboard</h1>
+                        <p class="text-xs text-white/60">Modalidad Terrestre</p>
                     </div>
                 </a>
-                <button id="logoutBtn" class="flex items-center gap-3 px-3 py-2 rounded-md bg-icon hover:bg-icon-hovered text-white text-sm font-medium transition-colors shadow-sm">
+
+                <button id="logoutBtn" class="flex items-center gap-2 px-3 py-2 rounded-md bg-icon hover:bg-icon-hovered text-white text-sm font-medium transition-colors shadow-sm flex-shrink-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/70">
                     <span class="hidden sm:inline">Salir</span>
                     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-log-out h-4 w-4">
                         <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
@@ -60,18 +70,28 @@
                     </svg>
                 </button>
             </div>
+
+            <!-- Compact user chip for phones only -->
+            <div class="w-full md:hidden -mt-1">
+                <p class="text-xs text-white/60 truncate">
+                    Usuario: <span id="user-label-mobile" class="text-white/90">username@domain.com</span>
+                </p>
+            </div>
         </div>
     </header>
 
-    <div class="p-6">
-        <h2 class="text-2xl font-bold text-primary flex items-center gap-2 pb-6">
+    <div class="max-w-[1600px] mx-auto p-4 sm:p-6">
+        <h2 class="text-xl sm:text-2xl font-bold text-primary flex items-center gap-2 pb-4 sm:pb-6">
             Resumen General
         </h2>
 
-        <div class="flex flex-col md:flex-row gap-6 mb-8">
-            <div class="bg-surface p-6 rounded-xl shadow-sm flex-1 cursor-pointer border-2 border-transparent hover:border-orange-500 hover:-translate-y-1 transition-all duration-200 flex items-center justify-center gap-5" onclick="showDetails('all', 'all')">
+        <!-- ============ KPI CARDS: responsive grid (1 → 2 → 3 → 5 columns) ============ -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4 sm:gap-6 mb-8">
+
+            <!-- Total Viajes: spans full row on sm/lg to avoid an orphan card and act as the hero metric -->
+            <div class="bg-surface p-4 sm:p-6 rounded-xl shadow-sm cursor-pointer border-2 border-transparent hover:border-orange-500 hover:-translate-y-1 transition-all duration-200 flex items-center justify-center gap-4 sm:gap-5 sm:col-span-2 lg:col-span-3 xl:col-span-1" onclick="showDetails('all', 'all')">
                 <div class="text-orange-500 flex items-center justify-center flex-shrink-0">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-package h-14 w-14">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-package h-10 w-10 lg:h-14 lg:w-14">
                         <path d="M11 21.73a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73z"></path>
                         <path d="M12 22V12"></path>
                         <path d="m3.3 7 7.703 4.734a2 2 0 0 0 1.994 0L20.7 7"></path>
@@ -80,26 +100,26 @@
                 </div>
                 <div class="text-left">
                     <h3 class="m-0 text-slate-500 text-xs font-bold uppercase tracking-wider">Total Viajes</h3>
-                    <div class="text-4xl font-bold mt-1 text-text leading-tight" id="val-total-trips">0</div>
+                    <div class="text-3xl lg:text-4xl font-bold mt-1 text-text leading-tight" id="val-total-trips">0</div>
                 </div>
             </div>
 
-            <div class="bg-surface p-6 rounded-xl shadow-sm flex-1 cursor-pointer border-2 border-transparent hover:border-blue-500 hover:-translate-y-1 transition-all duration-200 flex items-center justify-center gap-5" onclick="showDetails('status', 'coordinado')">
+            <div class="bg-surface p-4 sm:p-6 rounded-xl shadow-sm cursor-pointer border-2 border-transparent hover:border-blue-500 hover:-translate-y-1 transition-all duration-200 flex items-center justify-center gap-4 sm:gap-5" onclick="showDetails('status', 'coordinado')">
                 <div class="text-blue-500 flex items-center justify-center flex-shrink-0">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-clock h-14 w-14">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-clock h-10 w-10 lg:h-14 lg:w-14">
                         <circle cx="12" cy="12" r="10"></circle>
                         <polyline points="12 6 12 12 16 14"></polyline>
                     </svg>
                 </div>
                 <div class="text-left">
                     <h3 class="m-0 text-slate-500 text-xs font-bold uppercase tracking-wider">A Tiempo</h3>
-                    <div class="text-4xl font-bold mt-1 text-text leading-tight" id="val-ontime">0</div>
+                    <div class="text-3xl lg:text-4xl font-bold mt-1 text-text leading-tight" id="val-ontime">0</div>
                 </div>
             </div>
-            
-            <div class="bg-surface p-6 rounded-xl shadow-sm flex-1 cursor-pointer border-2 border-transparent hover:border-red-500 hover:-translate-y-1 transition-all duration-200 flex items-center justify-center gap-5" onclick="showDetails('status', 'atrasado')">
+
+            <div class="bg-surface p-4 sm:p-6 rounded-xl shadow-sm cursor-pointer border-2 border-transparent hover:border-red-500 hover:-translate-y-1 transition-all duration-200 flex items-center justify-center gap-4 sm:gap-5" onclick="showDetails('status', 'atrasado')">
                 <div class="text-red-500 flex items-center justify-center flex-shrink-0">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-triangle-alert h-14 w-14">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-triangle-alert h-10 w-10 lg:h-14 lg:w-14">
                         <path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3"></path>
                         <path d="M12 9v4"></path>
                         <path d="M12 17h.01"></path>
@@ -107,61 +127,65 @@
                 </div>
                 <div class="text-left">
                     <h3 class="m-0 text-slate-500 text-xs font-bold uppercase tracking-wider">Con Atraso</h3>
-                    <div class="text-4xl font-bold mt-1 text-text leading-tight" id="val-delayed">0</div>
+                    <div class="text-3xl lg:text-4xl font-bold mt-1 text-text leading-tight" id="val-delayed">0</div>
                 </div>
             </div>
 
-            <div class="bg-surface p-6 rounded-xl shadow-sm flex-1 cursor-pointer border-2 border-transparent hover:border-orange-500 hover:-translate-y-1 transition-all duration-200 flex items-center justify-center gap-5" onclick="showDetails('status', 'buscando')">
+            <div class="bg-surface p-4 sm:p-6 rounded-xl shadow-sm cursor-pointer border-2 border-transparent hover:border-orange-500 hover:-translate-y-1 transition-all duration-200 flex items-center justify-center gap-4 sm:gap-5" onclick="showDetails('status', 'buscando')">
                 <div class="text-orange-500 flex items-center justify-center flex-shrink-0">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-search h-14 w-14">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-search h-10 w-10 lg:h-14 lg:w-14">
                         <circle cx="11" cy="11" r="8"></circle>
                         <path d="m21 21-4.35-4.35"></path>
                     </svg>
                 </div>
                 <div class="text-left">
                     <h3 class="m-0 text-slate-500 text-xs font-bold uppercase tracking-wider">Buscando</h3>
-                    <div class="text-4xl font-bold mt-1 text-text leading-tight" id="val-incidence">0</div>
+                    <div class="text-3xl lg:text-4xl font-bold mt-1 text-text leading-tight" id="val-incidence">0</div>
                 </div>
             </div>
 
-            <div class="bg-surface p-6 rounded-xl shadow-sm flex-1 cursor-pointer border-2 border-transparent hover:border-green-500 hover:-translate-y-1 transition-all duration-200 flex items-center justify-center gap-5" onclick="showDetails('status', 'completado')">
+            <div class="bg-surface p-4 sm:p-6 rounded-xl shadow-sm cursor-pointer border-2 border-transparent hover:border-green-500 hover:-translate-y-1 transition-all duration-200 flex items-center justify-center gap-4 sm:gap-5" onclick="showDetails('status', 'completado')">
                 <div class="text-green-500 flex items-center justify-center flex-shrink-0">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-circle-check h-14 w-14">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-circle-check h-10 w-10 lg:h-14 lg:w-14">
                         <circle cx="12" cy="12" r="10"></circle>
                         <path d="m9 12 2 2 4-4"></path>
                     </svg>
                 </div>
                 <div class="text-left">
                     <h3 class="m-0 text-slate-500 text-xs font-bold uppercase tracking-wider">Completados</h3>
-                    <div class="text-4xl font-bold mt-1 text-text leading-tight" id="val-pendent">0</div>
+                    <div class="text-3xl lg:text-4xl font-bold mt-1 text-text leading-tight" id="val-pendent">0</div>
                 </div>
             </div>
         </div>
 
-        <h2 class="text-2xl font-bold text-primary flex items-center gap-2 pb-6">
+        <h2 class="text-xl sm:text-2xl font-bold text-primary flex items-center gap-2 pb-4 sm:pb-6">
             Actividad por Estado
         </h2>
 
-        <div id="main-view" class="bg-surface p-6 rounded-xl shadow-sm border border-border mb-6">
-            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 gap-4">
-                <div class="flex bg-slate-100 p-1 rounded-lg border border-border">
-                    <button id="btnOrigin" class="px-4 py-1.5 text-sm font-bold rounded-md bg-white shadow-sm text-slate-800 transition-all" onclick="toggleMapMode('origen')">
+        <!-- ============ MAP VIEW ============ -->
+        <div id="main-view" class="bg-surface p-4 sm:p-6 rounded-xl shadow-sm border border-border mb-6">
+            <div class="flex flex-col sm:flex-row justify-between items-stretch sm:items-center mb-4 gap-4">
+                <!-- Toggle: full-width segmented control on mobile, compact on desktop -->
+                <div class="flex w-full sm:w-auto bg-slate-100 p-1 rounded-lg border border-border">
+                    <button id="btnOrigin" class="flex-1 sm:flex-initial px-4 py-1.5 text-sm font-bold rounded-md bg-white shadow-sm text-slate-800 transition-all" onclick="toggleMapMode('origen')">
                         Por Origen
                     </button>
-                    <button id="btnDestination" class="px-4 py-1.5 text-sm font-medium rounded-md text-slate-500 hover:text-slate-800 transition-all" onclick="toggleMapMode('destino')">
+                    <button id="btnDestination" class="flex-1 sm:flex-initial px-4 py-1.5 text-sm font-medium rounded-md text-slate-500 hover:text-slate-800 transition-all" onclick="toggleMapMode('destino')">
                         Por Destino
                     </button>
                 </div>
             </div>
-            <div id="map_div" class="w-full h-[100%] rounded-lg overflow-hidden bg-slate-50"></div>
+            <!-- Explicit responsive height: h-[100%] was circular and could collapse to 0 -->
+            <div id="map_div" class="w-full h-[300px] sm:h-[400px] lg:h-[500px] rounded-lg overflow-hidden bg-slate-50"></div>
         </div>
 
-        <div id="detail-view" class="bg-surface p-6 rounded-xl shadow-sm border border-border mb-6 hidden">
-            
-            <div class="flex items-center justify-between mb-6">
+        <!-- ============ DETAIL VIEW ============ -->
+        <div id="detail-view" class="bg-surface p-4 sm:p-6 rounded-xl shadow-sm border border-border mb-6 hidden">
+
+            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
                 <h3 id="table-title" class="text-lg font-bold text-primary">Detalle de Viajes</h3>
-                <div class="flex flex-row gap-5">
-                    <button id="exportCsvBtn" class="flex flex-row bg-green-600 hover:bg-green-700 text-white font-medium py-2 px-4 rounded-md transition-colors text-sm items-center gap-2" onclick="exportToCSV()">
+                <div class="flex flex-wrap gap-3">
+                    <button id="exportCsvBtn" class="flex-1 sm:flex-initial flex flex-row justify-center bg-green-600 hover:bg-green-700 text-white font-medium py-2 px-4 rounded-md transition-colors text-sm items-center gap-2" onclick="exportToCSV()">
                         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-download">
                             <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
                             <polyline points="7 10 12 15 17 10"></polyline>
@@ -169,13 +193,14 @@
                         </svg>
                         Exportar a CSV
                     </button>
-                    <button class="bg-slate-100 hover:bg-slate-200 text-slate-700 font-medium py-2 px-4 rounded-md transition-colors text-sm" onclick="goBackToMap()">
+                    <button class="flex-1 sm:flex-initial bg-slate-100 hover:bg-slate-200 text-slate-700 font-medium py-2 px-4 rounded-md transition-colors text-sm whitespace-nowrap" onclick="goBackToMap()">
                         ← Volver al Mapa
                     </button>
                 </div>
             </div>
-            
-            <div class="overflow-x-auto">
+
+            <!-- ========== DESKTOP: classic table (hidden below md) ========== -->
+            <div class="hidden md:block overflow-x-auto rounded-lg border border-border">
                 <table class="w-full text-sm text-left">
                     <thead class="text-xs text-slate-500 uppercase bg-slate-50 border-b border-border">
                         <tr>
@@ -188,13 +213,153 @@
                             <th class="px-6 py-4 font-semibold">Transportistas</th>
                         </tr>
                     </thead>
-                    <tbody id="detail-table-body" class="divide-y divide-border">
-                        </tbody>
+                    <tbody id="detail-table-body" class="divide-y divide-border"></tbody>
                 </table>
             </div>
+
+            <!-- ========== MOBILE: card list (hidden on md+) ========== -->
+            <div id="detail-card-list" class="md:hidden flex flex-col gap-3"></div>
         </div>
     </div>
 
-    <script type="module" src="./dashboard_map.js"></script>
+    <script>
+      /* ============================================================
+         Trip rendering — one function populates BOTH layouts:
+         the desktop table (#detail-table-body) and the mobile
+         card list (#detail-card-list).
+
+         Call from dashboard_map.js:
+             renderTrips([{ status, origen, destino, salida, carga, transportistas, detalles? }, ...])
+         ============================================================ */
+      const STATUS_STYLES = {
+          buscando:   { label: 'BUSCANDO',   badge: 'bg-amber-100 text-amber-800'  },
+          ofreciendo: { label: 'OFRECIENDO', badge: 'bg-rose-100 text-rose-700'    },
+          atrasado:   { label: 'ATRASADO',   badge: 'bg-red-100 text-red-700'      },
+          coordinado: { label: 'COORDINADO', badge: 'bg-blue-100 text-blue-700'    },
+          completado: { label: 'COMPLETADO', badge: 'bg-green-100 text-green-700'  },
+          _default:   { label: '—',          badge: 'bg-slate-100 text-slate-600'  },
+      };
+
+      const styleFor = (status) => STATUS_STYLES[String(status).toLowerCase()] || { ...STATUS_STYLES._default, label: String(status).toUpperCase() };
+
+      const esc = (s) => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+
+      function renderTrips(trips) {
+          const tbody = document.getElementById('detail-table-body');
+          const cards = document.getElementById('detail-card-list');
+          tbody.innerHTML = '';
+          cards.innerHTML = '';
+
+          trips.forEach((t, i) => {
+              const st = styleFor(t.status);
+
+              /* ---------- Desktop row (+ hidden expandable detail row) ---------- */
+              tbody.insertAdjacentHTML('beforeend', `
+                  <tr class="hover:bg-slate-50 transition-colors">
+                      <td class="px-4 py-4">
+                          <button onclick="toggleRow(${i})" aria-expanded="false" aria-label="Ver detalles"
+                                  class="text-slate-400 hover:text-slate-700 transition-transform duration-200" id="chev-row-${i}">
+                              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>
+                          </button>
+                      </td>
+                      <td class="px-6 py-4">
+                          <span class="inline-block px-3 py-1 rounded-full text-xs font-bold tracking-wide ${st.badge}">${st.label}</span>
+                      </td>
+                      <td class="px-6 py-4 font-semibold text-text">${esc(t.origen)}</td>
+                      <td class="px-6 py-4">${esc(t.destino)}</td>
+                      <td class="px-6 py-4 text-slate-500 whitespace-nowrap">${esc(t.salida)}</td>
+                      <td class="px-6 py-4">${esc(t.carga)}</td>
+                      <td class="px-6 py-4">${esc(t.transportistas)}</td>
+                  </tr>
+                  <tr id="detail-row-${i}" class="hidden bg-slate-50">
+                      <td colspan="7" class="px-6 py-4 text-sm text-slate-600">${esc(t.detalles || 'Sin detalles adicionales.')}</td>
+                  </tr>
+              `);
+
+              /* ---------- Mobile card ---------- */
+              cards.insertAdjacentHTML('beforeend', `
+                  <div class="rounded-lg border border-border bg-surface shadow-sm overflow-hidden">
+                      <button class="w-full text-left p-4 active:bg-slate-50" onclick="toggleCard(${i})" aria-expanded="false" id="card-btn-${i}">
+                          <div class="flex items-center justify-between gap-3 mb-3">
+                              <span class="inline-block px-3 py-1 rounded-full text-xs font-bold tracking-wide ${st.badge}">${st.label}</span>
+                              <span class="text-xs text-slate-400 whitespace-nowrap">${esc(t.salida)}</span>
+                          </div>
+                          <div class="flex items-center gap-2 min-w-0">
+                              <div class="flex-1 min-w-0">
+                                  <p class="text-[10px] uppercase tracking-wider text-slate-400 font-semibold">Origen</p>
+                                  <p class="font-bold text-text text-sm leading-snug">${esc(t.origen)}</p>
+                              </div>
+                              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-slate-300 flex-shrink-0"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+                              <div class="flex-1 min-w-0 text-right">
+                                  <p class="text-[10px] uppercase tracking-wider text-slate-400 font-semibold">Destino</p>
+                                  <p class="font-bold text-text text-sm leading-snug">${esc(t.destino)}</p>
+                              </div>
+                          </div>
+                      </button>
+                      <div id="card-body-${i}" class="hidden border-t border-border bg-slate-50 px-4 py-3">
+                          <dl class="grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
+                              <div>
+                                  <dt class="text-[10px] uppercase tracking-wider text-slate-400 font-semibold">Carga</dt>
+                                  <dd class="text-text">${esc(t.carga)}</dd>
+                              </div>
+                              <div>
+                                  <dt class="text-[10px] uppercase tracking-wider text-slate-400 font-semibold">Transportistas</dt>
+                                  <dd class="text-text">${esc(t.transportistas)}</dd>
+                              </div>
+                              ${t.detalles ? `<div class="col-span-2"><dt class="text-[10px] uppercase tracking-wider text-slate-400 font-semibold">Detalles</dt><dd class="text-slate-600">${esc(t.detalles)}</dd></div>` : ''}
+                          </dl>
+                      </div>
+                  </div>
+              `);
+          });
+      }
+
+      function toggleRow(i) {
+          const row = document.getElementById(`detail-row-${i}`);
+          const chev = document.getElementById(`chev-row-${i}`);
+          const open = row.classList.toggle('hidden') === false;
+          chev.style.transform = open ? 'rotate(90deg)' : '';
+          chev.setAttribute('aria-expanded', open);
+      }
+
+      function toggleCard(i) {
+          const body = document.getElementById(`card-body-${i}`);
+          const btn = document.getElementById(`card-btn-${i}`);
+          const open = body.classList.toggle('hidden') === false;
+          btn.setAttribute('aria-expanded', open);
+      }
+
+      // Expose for dashboard_map.js (which is a module and lives in its own scope)
+      window.renderTrips = renderTrips;
+      window.toggleRow = toggleRow;
+      window.toggleCard = toggleCard;
+    </script>
+
+    <!-- Keep the mobile user chip in sync + redraw the GeoChart on resize
+         (Google Charts does NOT auto-resize on its own) -->
+    <script>
+      // Mirror the email into the mobile chip whenever dashboard_map.js updates #user-label
+      const userLabel = document.getElementById('user-label');
+      const userLabelMobile = document.getElementById('user-label-mobile');
+      if (userLabel && userLabelMobile) {
+        const sync = () => { userLabelMobile.textContent = userLabel.textContent; };
+        sync();
+        new MutationObserver(sync).observe(userLabel, { childList: true, characterData: true, subtree: true });
+      }
+
+      // Debounced redraw so the map re-fits its container after rotation / window resize.
+      // dashboard_map.js should expose its draw function as window.redrawMap (or adjust the name here).
+      let __resizeTimer;
+      window.addEventListener('resize', () => {
+        clearTimeout(__resizeTimer);
+        __resizeTimer = setTimeout(() => {
+          if (typeof window.redrawMap === 'function') window.redrawMap();
+        }, 250);
+      });
+    </script>
+
+    <script type="module">
+      import(`./dashboard_map.js?v=${Date.now()}`);
+    </script>
 </body>
 </html>

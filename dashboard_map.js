@@ -22,6 +22,7 @@ let mapData;
 let currentMapMode = 'origen';
 let currentFilteredTrips = [];
 let currentFilterName = "";
+let currentDetailFilter = null;
 
 onAuthStateChanged(auth, (user) => {
     if (user) {
@@ -77,6 +78,11 @@ function initFirebaseListener() {
         document.getElementById('val-pendent').innerText = completado;
 
         processDataAndDrawMap();
+
+        const detailView = document.getElementById('detail-view');
+        if (detailView && !detailView.classList.contains('hidden') && currentDetailFilter) {
+            window.showDetails(currentDetailFilter.type, currentDetailFilter.value);
+        }
     });
 }
 
@@ -179,11 +185,13 @@ window.toggleMapMode = function(mode) {
 window.showDetails = function(filterType, filterValue) {
     document.getElementById('main-view').classList.add('hidden');
     document.getElementById('detail-view').classList.remove('hidden');
-    
-    const tableBody = document.getElementById('detail-table-body');
-    tableBody.innerHTML = ''; 
 
-    let filteredTrips = [];
+    currentDetailFilter = { type: filterType, value: filterValue };
+
+    const tableBody = document.getElementById('detail-table-body');
+    const cardList = document.getElementById('detail-card-list');
+    tableBody.innerHTML = '';
+    if (cardList) cardList.innerHTML = '';
 
     if (filterType === 'status') {
         if (filterValue === 'incidencias') {
@@ -214,6 +222,24 @@ window.showDetails = function(filterType, filterValue) {
         document.getElementById('table-title').innerText = 'Mostrando todos los viajes';
         currentFilteredTrips = allTrips;
         currentFilterName = "all_trips";
+    }
+
+    if (currentFilteredTrips.length === 0) {
+        tableBody.innerHTML = `
+            <tr>
+                <td colspan="7" class="px-6 py-8 text-center text-sm text-slate-500 italic">
+                    No hay viajes que coincidan con este filtro.
+                </td>
+            </tr>
+        `;
+        if (cardList) {
+            cardList.innerHTML = `
+                <div class="rounded-lg border border-dashed border-border bg-slate-50 p-6 text-center text-sm text-slate-500 italic">
+                    No hay viajes que coincidan con este filtro.
+                </div>
+            `;
+        }
+        return;
     }
 
     currentFilteredTrips.forEach((trip, index) => {
@@ -275,6 +301,56 @@ window.showDetails = function(filterType, filterValue) {
 
         tableBody.appendChild(row);
         tableBody.appendChild(detailsRow);
+
+        if (cardList) {
+            const salidaText = trip.fecha_salida
+                ? new Date(trip.fecha_salida).toLocaleString('es-MX', {
+                    day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit',
+                    timeZone: 'America/Mexico_City'
+                })
+                : 'N/A';
+
+            const card = document.createElement('div');
+            card.className = 'rounded-lg border border-border bg-surface shadow-sm overflow-hidden';
+            card.innerHTML = `
+                <button type="button"
+                        class="w-full text-left p-4 active:bg-slate-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-icon"
+                        aria-expanded="false">
+                    <div class="flex items-center justify-between gap-3 mb-3">
+                        <span class="inline-block px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider ${badgeStyle}">
+                            ${trip.estado || 'N/A'}
+                        </span>
+                        <span class="text-xs text-slate-400 whitespace-nowrap">${salidaText}</span>
+                    </div>
+                    <div class="flex items-center gap-2 min-w-0">
+                        <div class="flex-1 min-w-0">
+                            <p class="text-[10px] uppercase tracking-wider text-slate-400 font-semibold">Origen</p>
+                            <p class="font-bold text-text text-sm leading-snug break-words">${trip.origen || 'N/A'}</p>
+                        </div>
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-slate-300 flex-shrink-0">
+                            <path d="M5 12h14"/><path d="m12 5 7 7-7 7"/>
+                        </svg>
+                        <div class="flex-1 min-w-0 text-right">
+                            <p class="text-[10px] uppercase tracking-wider text-slate-400 font-semibold">Destino</p>
+                            <p class="font-bold text-text text-sm leading-snug break-words">${trip.destino || 'N/A'}</p>
+                        </div>
+                    </div>
+                </button>
+                <div class="mobile-card-body hidden border-t border-border bg-slate-50 p-4">
+                    ${buildTripDetails(trip)}
+                </div>
+            `;
+
+            const btn = card.querySelector('button');
+            const body = card.querySelector('.mobile-card-body');
+            btn.addEventListener('click', () => {
+                const willOpen = body.classList.contains('hidden');
+                body.classList.toggle('hidden');
+                btn.setAttribute('aria-expanded', String(willOpen));
+            });
+
+            cardList.appendChild(card);
+        }
     });
 };
 
@@ -456,7 +532,9 @@ window.exportToCSV = function() {
 window.goBackToMap = function() {
     document.getElementById('detail-view').classList.add('hidden');
     document.getElementById('main-view').classList.remove('hidden');
-    
+
+    currentDetailFilter = null;
+
     processDataAndDrawMap();
 };
 
