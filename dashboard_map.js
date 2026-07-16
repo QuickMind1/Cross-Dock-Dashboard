@@ -1,5 +1,4 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
-import { getFirestore, collection, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
 
 const firebaseConfig = {
@@ -13,7 +12,6 @@ const firebaseConfig = {
 };
 
 const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
 const auth = getAuth(app);
 
 let allTrips = []; 
@@ -30,7 +28,7 @@ onAuthStateChanged(auth, (user) => {
         google.charts.load('current', {
             'packages':['geochart'],
         });
-        google.charts.setOnLoadCallback(initFirebaseListener);
+        google.charts.setOnLoadCallback(fetchTrips);
     } else {
         window.location.href = "index.html"; 
     }
@@ -43,22 +41,18 @@ document.getElementById('logoutBtn').addEventListener('click', () => {
         });
 });
 
-function initFirebaseListener() {
-    const tripsRef = collection(db, 'viajes');
-    
-    onSnapshot(tripsRef, (snapshot) => {
-        allTrips = [];
+async function fetchTrips() {
+    try {
+        const response = await fetch('/api/trips');
+        if (!response.ok) {
+            throw new Error(`HTTP ${response.status}`);
+        }
+        const trips = await response.json();
+
+        allTrips = trips;
         let coordinado = 0, buscando = 0, atrasado = 0, completado = 0, tiempo = 0;
 
-        snapshot.forEach((doc) => {
-            const trip = doc.data();
-            allTrips.push(trip);
-
-            // const missingDriver = !trip.transportista || (typeof trip.transportista === 'string' && trip.transportista.trim() === '');
-            // const unconfirmed = trip.estado === 'ofreciendo';
-
-            // if (missingDriver || unconfirmed) incidence++;
-
+        allTrips.forEach((trip) => {
             if (trip.estado === 'coordinado') coordinado++;
             if (trip.estado === 'buscando') buscando++;
             if (trip.estado === 'atrasado') atrasado++;
@@ -83,8 +77,12 @@ function initFirebaseListener() {
         if (detailView && !detailView.classList.contains('hidden') && currentDetailFilter) {
             window.showDetails(currentDetailFilter.type, currentDetailFilter.value);
         }
-    });
+    } catch (error) {
+        console.error("Error fetching trips: ", error);
+    }
 }
+
+window.refreshTrips = fetchTrips;
 
 function processDataAndDrawMap() {
     let stateCounts = {};
@@ -357,7 +355,8 @@ window.showDetails = function(filterType, filterValue) {
 function buildTripDetails(trip) {
     const usedKeys = new Set([
         'estado', 'origen', 'destino', 'fecha_salida',
-        'tipo_carga', 'cantidadActualDeTransportistas', 'cantidadTransportistas'
+        'tipo_carga', 'cantidadActualDeTransportistas', 'cantidadTransportistas',
+        'transportistas'
     ]);
 
     const prettyLabel = (key) => key
@@ -396,10 +395,6 @@ function buildTripDetails(trip) {
 
     const extraEntries = Object.entries(trip).filter(([k]) => !usedKeys.has(k));
 
-    if (extraEntries.length === 0) {
-        return '<p class="text-sm text-slate-500 italic">No hay información adicional para este viaje.</p>';
-    }
-
     const cards = extraEntries.map(([key, value]) => `
         <div class="bg-white rounded-lg p-4 border border-border shadow-sm">
             <div class="text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1">${escapeHtml(prettyLabel(key))}</div>
@@ -407,10 +402,10 @@ function buildTripDetails(trip) {
         </div>
     `).join('');
 
-    return `
-        <div>
-            ${buildStatusNotice(trip)}
-            <h4 class="text-sm font-bold text-primary mb-3 flex items-center gap-2">
+    const detailsSection = extraEntries.length === 0
+        ? ''
+        : `
+            <h4 class="text-sm font-bold text-primary mt-5 mb-3 flex items-center gap-2">
                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                     <circle cx="12" cy="12" r="10"></circle>
                     <path d="M12 16v-4"></path>
@@ -421,6 +416,88 @@ function buildTripDetails(trip) {
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
                 ${cards}
             </div>
+        `;
+
+    return `
+        <div>
+            ${buildStatusNotice(trip)}
+            ${buildDriversList(trip)}
+            ${detailsSection}
+        </div>
+    `;
+}
+
+function buildDriversList(trip) {
+    const drivers = Array.isArray(trip.transportistas) ? trip.transportistas : [];
+    const needed = trip.cantidadTransportistas ?? 0;
+    const current = drivers.length;
+
+    const isComplete = needed > 0 && current >= needed;
+    const counterStyle = isComplete
+        ? 'bg-emerald-100 text-emerald-700'
+        : 'bg-amber-100 text-amber-700';
+
+    const header = `
+        <h4 class="text-sm font-bold text-primary mb-3 flex items-center gap-2">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path>
+                <circle cx="9" cy="7" r="4"></circle>
+                <path d="M22 21v-2a4 4 0 0 0-3-3.87"></path>
+                <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+            </svg>
+            Transportistas asignados
+            <span class="ml-1 px-2 py-0.5 rounded-full text-xs font-bold ${counterStyle}">${current}/${needed}</span>
+        </h4>
+    `;
+
+    if (drivers.length === 0) {
+        return `
+            <div class="mb-2">
+                ${header}
+                <div class="rounded-lg border border-dashed border-border bg-white p-4 text-center text-sm text-slate-500 italic">
+                    Aún no hay transportistas asignados a este viaje.
+                </div>
+            </div>
+        `;
+    }
+
+    const palette = [
+        'bg-icon', 'bg-blue-500', 'bg-emerald-500', 'bg-amber-500',
+        'bg-purple-500', 'bg-sky-500', 'bg-rose-500', 'bg-teal-500'
+    ];
+
+    const items = drivers.map((d, i) => {
+        const nickname = (d && d.nickname) ? String(d.nickname) : 'Sin nombre';
+        const initial = nickname.trim().charAt(0).toUpperCase() || '?';
+        const color = palette[i % palette.length];
+        const message = (d && d.driver_confirmation_message) ? String(d.driver_confirmation_message) : '';
+
+        const messageHtml = message
+            ? `<p class="text-xs text-slate-500 mt-0.5 break-words">${escapeHtml(message)}</p>`
+            : '';
+
+        return `
+            <li class="flex items-start gap-3 p-3 bg-white rounded-lg border border-border shadow-sm">
+                <span class="flex-shrink-0 flex items-center justify-center w-9 h-9 rounded-full ${color} text-white text-sm font-bold uppercase">
+                    ${escapeHtml(initial)}
+                </span>
+                <div class="min-w-0 flex-1">
+                    <p class="text-sm font-semibold text-slate-800 break-words">${escapeHtml(nickname)}</p>
+                    ${messageHtml}
+                </div>
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="flex-shrink-0 mt-1 text-emerald-500">
+                    <path d="M20 6 9 17l-5-5"></path>
+                </svg>
+            </li>
+        `;
+    }).join('');
+
+    return `
+        <div class="mb-2">
+            ${header}
+            <ul class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                ${items}
+            </ul>
         </div>
     `;
 }
