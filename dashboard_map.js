@@ -1,5 +1,4 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
-import { getFirestore, collection, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
 
 const firebaseConfig = {
@@ -13,7 +12,6 @@ const firebaseConfig = {
 };
 
 const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
 const auth = getAuth(app);
 
 let allTrips = []; 
@@ -24,13 +22,40 @@ let currentFilteredTrips = [];
 let currentFilterName = "";
 let currentDetailFilter = null;
 
+const TripState = {
+    GATHERING_DRIVERS: 'gatheringDrivers',
+    COORDINATED: 'coordinated',
+    IN_TRANSIT: 'inTransit',
+    DELAYED: 'delayed',
+    COMPLETED: 'completed',
+    CANCELED: 'canceled',
+};
+
+const STATE_LABELS = {
+    [TripState.GATHERING_DRIVERS]: 'BUSCANDO',
+    [TripState.COORDINATED]:       'COORDINADO',
+    [TripState.IN_TRANSIT]:        'EN TRÁNSITO',
+    [TripState.DELAYED]:           'ATRASADO',
+    [TripState.COMPLETED]:         'COMPLETADO',
+    [TripState.CANCELED]:          'CANCELADO',
+};
+
+const STATE_BADGES = {
+    [TripState.GATHERING_DRIVERS]: 'bg-amber-100 text-amber-800',
+    [TripState.COORDINATED]:       'bg-sky-100 text-sky-800',
+    [TripState.IN_TRANSIT]:        'bg-blue-100 text-blue-800',
+    [TripState.DELAYED]:           'bg-red-100 text-red-800',
+    [TripState.COMPLETED]:         'bg-emerald-100 text-emerald-800',
+    [TripState.CANCELED]:          'bg-slate-200 text-slate-700',
+};
+
 onAuthStateChanged(auth, (user) => {
     if (user) {
         document.getElementById('user-label').textContent = user.email;
         google.charts.load('current', {
             'packages':['geochart'],
         });
-        google.charts.setOnLoadCallback(initFirebaseListener);
+        google.charts.setOnLoadCallback(fetchTrips);
     } else {
         window.location.href = "index.html"; 
     }
@@ -43,39 +68,38 @@ document.getElementById('logoutBtn').addEventListener('click', () => {
         });
 });
 
-function initFirebaseListener() {
-    const tripsRef = collection(db, 'viajes');
-    
-    onSnapshot(tripsRef, (snapshot) => {
-        allTrips = [];
-        let coordinado = 0, buscando = 0, atrasado = 0, completado = 0, tiempo = 0;
+async function fetchTrips() {
+    try {
+        const response = await fetch('/api/trips');
+        if (!response.ok) {
+            throw new Error(`HTTP ${response.status}`);
+        }
+        const trips = await response.json();
 
-        snapshot.forEach((doc) => {
-            const trip = doc.data();
-            allTrips.push(trip);
+        allTrips = trips;
+        let coordinated = 0, gatheringDrivers = 0, delayed = 0, completed = 0, inTransit = 0, canceled = 0;
 
-            // const missingDriver = !trip.transportista || (typeof trip.transportista === 'string' && trip.transportista.trim() === '');
-            // const unconfirmed = trip.estado === 'ofreciendo';
-
-            // if (missingDriver || unconfirmed) incidence++;
-
-            if (trip.estado === 'coordinado') coordinado++;
-            if (trip.estado === 'buscando') buscando++;
-            if (trip.estado === 'atrasado') atrasado++;
-            if (trip.estado === 'completado') completado++;
-            if (trip.estado === 'tiempo') tiempo++;
+        allTrips.forEach((trip) => {
+            switch (trip.estado) {
+                case TripState.COORDINATED:       coordinated++;      break;
+                case TripState.GATHERING_DRIVERS: gatheringDrivers++; break;
+                case TripState.DELAYED:           delayed++;          break;
+                case TripState.COMPLETED:         completed++;        break;
+                case TripState.IN_TRANSIT:        inTransit++;        break;
+                case TripState.CANCELED:          canceled++;         break;
+            }
         });
 
         document.getElementById('val-total-trips').innerText = allTrips.length;
 
         /*Los viajes que han sido coordinados (ya tienen todos los transportistas asginados) 
-        y los que ya fueron coordinados pero estan en servicio y antes de la fecha de llegada 
-        estimada, son considerados a tiempo. */
-        document.getElementById('val-ontime').innerText = tiempo + coordinado; 
+        y los que ya fueron coordinados pero estan en servicio (en tránsito) y antes de la fecha 
+        de llegada estimada, son considerados a tiempo. */
+        document.getElementById('val-ontime').innerText = inTransit + coordinated; 
 
-        document.getElementById('val-delayed').innerText = atrasado;
-        document.getElementById('val-incidence').innerText = buscando;
-        document.getElementById('val-pendent').innerText = completado;
+        document.getElementById('val-delayed').innerText = delayed;
+        document.getElementById('val-incidence').innerText = gatheringDrivers;
+        document.getElementById('val-pendent').innerText = completed;
 
         processDataAndDrawMap();
 
@@ -83,8 +107,12 @@ function initFirebaseListener() {
         if (detailView && !detailView.classList.contains('hidden') && currentDetailFilter) {
             window.showDetails(currentDetailFilter.type, currentDetailFilter.value);
         }
-    });
+    } catch (error) {
+        console.error("Error fetching trips: ", error);
+    }
 }
+
+window.refreshTrips = fetchTrips;
 
 function processDataAndDrawMap() {
     let stateCounts = {};
@@ -198,7 +226,7 @@ window.showDetails = function(filterType, filterValue) {
             document.getElementById('table-title').innerText = 'Viajes filtrados que presentan al menos una incidencia';
             currentFilteredTrips = allTrips.filter(t => {
                 const missingDriver = !t.transportista || (typeof t.transportista === 'string' && t.transportista.trim() === '');
-                const unconfirmed = t.estado === 'ofreciendo';
+                const unconfirmed = t.estado === TripState.GATHERING_DRIVERS;
 
                 return missingDriver || unconfirmed;
 
@@ -243,14 +271,8 @@ window.showDetails = function(filterType, filterValue) {
     }
 
     currentFilteredTrips.forEach((trip, index) => {
-        let badgeStyle = "bg-slate-100 text-slate-800";
-        if(trip.estado === 'coordinando' || trip.estado === 'coordinado') badgeStyle = "bg-green-100 text-green-800";
-        if(trip.estado === 'buscando') badgeStyle = "bg-amber-100 text-amber-800";
-        if(trip.estado === 'ofreciendo') badgeStyle = "bg-red-100 text-red-800";
-        if(trip.estado === 'atrasado') badgeStyle = "bg-red-100 text-red-800";
-        if(trip.estado === 'pendiente') badgeStyle = "bg-blue-100 text-blue-800";
-        if(trip.estado === 'completado') badgeStyle = "bg-emerald-100 text-emerald-800";
-        if(trip.estado === 'tiempo') badgeStyle = "bg-sky-100 text-sky-800";
+        const badgeStyle = STATE_BADGES[trip.estado] || "bg-slate-100 text-slate-800";
+        const stateLabel = STATE_LABELS[trip.estado] || trip.estado || 'N/A';
 
         const row = document.createElement('tr');
         row.className = "hover:bg-slate-50 transition-colors cursor-pointer";
@@ -263,7 +285,7 @@ window.showDetails = function(filterType, filterValue) {
             </td>
             <td class="px-6 py-4 whitespace-nowrap">
                 <span class="px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider ${badgeStyle}">
-                    ${trip.estado}
+                    ${stateLabel}
                 </span>
             </td>
             <td class="px-6 py-4 font-medium text-slate-800">${trip.origen || 'N/A'}</td>
@@ -318,7 +340,7 @@ window.showDetails = function(filterType, filterValue) {
                         aria-expanded="false">
                     <div class="flex items-center justify-between gap-3 mb-3">
                         <span class="inline-block px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider ${badgeStyle}">
-                            ${trip.estado || 'N/A'}
+                            ${stateLabel}
                         </span>
                         <span class="text-xs text-slate-400 whitespace-nowrap">${salidaText}</span>
                     </div>
@@ -357,7 +379,8 @@ window.showDetails = function(filterType, filterValue) {
 function buildTripDetails(trip) {
     const usedKeys = new Set([
         'estado', 'origen', 'destino', 'fecha_salida',
-        'tipo_carga', 'cantidadActualDeTransportistas', 'cantidadTransportistas'
+        'tipo_carga', 'cantidadActualDeTransportistas', 'cantidadTransportistas',
+        'transportistas', 'historial'
     ]);
 
     const prettyLabel = (key) => key
@@ -396,10 +419,6 @@ function buildTripDetails(trip) {
 
     const extraEntries = Object.entries(trip).filter(([k]) => !usedKeys.has(k));
 
-    if (extraEntries.length === 0) {
-        return '<p class="text-sm text-slate-500 italic">No hay información adicional para este viaje.</p>';
-    }
-
     const cards = extraEntries.map(([key, value]) => `
         <div class="bg-white rounded-lg p-4 border border-border shadow-sm">
             <div class="text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1">${escapeHtml(prettyLabel(key))}</div>
@@ -407,10 +426,10 @@ function buildTripDetails(trip) {
         </div>
     `).join('');
 
-    return `
-        <div>
-            ${buildStatusNotice(trip)}
-            <h4 class="text-sm font-bold text-primary mb-3 flex items-center gap-2">
+    const detailsSection = extraEntries.length === 0
+        ? ''
+        : `
+            <h4 class="text-sm font-bold text-primary mt-5 mb-3 flex items-center gap-2">
                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                     <circle cx="12" cy="12" r="10"></circle>
                     <path d="M12 16v-4"></path>
@@ -421,46 +440,234 @@ function buildTripDetails(trip) {
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
                 ${cards}
             </div>
+        `;
+
+    return `
+        <div>
+            ${buildStatusBar(trip)}
+            ${buildStatusNotice(trip)}
+            ${buildDriversList(trip)}
+            ${detailsSection}
+        </div>
+    `;
+}
+
+function buildDriversList(trip) {
+    const drivers = Array.isArray(trip.transportistas) ? trip.transportistas : [];
+    const needed = trip.cantidadTransportistas ?? 0;
+    const current = drivers.length;
+
+    const isComplete = needed > 0 && current >= needed;
+    const counterStyle = isComplete
+        ? 'bg-emerald-100 text-emerald-700'
+        : 'bg-amber-100 text-amber-700';
+
+    const header = `
+        <h4 class="text-sm font-bold text-primary mb-3 flex items-center gap-2">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path>
+                <circle cx="9" cy="7" r="4"></circle>
+                <path d="M22 21v-2a4 4 0 0 0-3-3.87"></path>
+                <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+            </svg>
+            Transportistas asignados
+            <span class="ml-1 px-2 py-0.5 rounded-full text-xs font-bold ${counterStyle}">${current}/${needed}</span>
+        </h4>
+    `;
+
+    if (drivers.length === 0) {
+        return `
+            <div class="mb-2">
+                ${header}
+                <div class="rounded-lg border border-dashed border-border bg-white p-4 text-center text-sm text-slate-500 italic">
+                    Aún no hay transportistas asignados a este viaje.
+                </div>
+            </div>
+        `;
+    }
+
+    const palette = [
+        'bg-icon', 'bg-blue-500', 'bg-emerald-500', 'bg-amber-500',
+        'bg-purple-500', 'bg-sky-500', 'bg-rose-500', 'bg-teal-500'
+    ];
+
+    const items = drivers.map((d, i) => {
+        const nickname = (d && d.nickname) ? String(d.nickname) : 'Sin nombre';
+        const initial = nickname.trim().charAt(0).toUpperCase() || '?';
+        const color = palette[i % palette.length];
+        const message = (d && d.driver_confirmation_message) ? String(d.driver_confirmation_message) : '';
+
+        const messageHtml = message
+            ? `<p class="text-xs text-slate-500 mt-0.5 break-words">${escapeHtml(message)}</p>`
+            : '';
+
+        return `
+            <li class="flex items-start gap-3 p-3 bg-white rounded-lg border border-border shadow-sm">
+                <span class="flex-shrink-0 flex items-center justify-center w-9 h-9 rounded-full ${color} text-white text-sm font-bold uppercase">
+                    ${escapeHtml(initial)}
+                </span>
+                <div class="min-w-0 flex-1">
+                    <p class="text-sm font-semibold text-slate-800 break-words">${escapeHtml(nickname)}</p>
+                    ${messageHtml}
+                </div>
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="flex-shrink-0 mt-1 text-emerald-500">
+                    <path d="M20 6 9 17l-5-5"></path>
+                </svg>
+            </li>
+        `;
+    }).join('');
+
+    return `
+        <div class="mb-2">
+            ${header}
+            <ul class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                ${items}
+            </ul>
+        </div>
+    `;
+}
+
+function buildStatusBar(trip) {
+    const STEPS = [
+        { key: TripState.GATHERING_DRIVERS, label: 'Buscando' },
+        { key: TripState.COORDINATED,       label: 'Coordinado' },
+        { key: TripState.IN_TRANSIT,        label: 'En Tránsito' },
+        { key: TripState.COMPLETED,         label: 'Completado' },
+    ];
+    const STEP_INDEX = {
+        [TripState.GATHERING_DRIVERS]: 0,
+        [TripState.COORDINATED]:       1,
+        [TripState.IN_TRANSIT]:        2,
+        [TripState.COMPLETED]:         3,
+    };
+
+    // Prefer the recorded history; fall back to the trip's current state.
+    const history = (Array.isArray(trip.historial) && trip.historial.length)
+        ? trip.historial
+        : (trip.estado ? [{ status_type: trip.estado }] : []);
+
+    if (history.length === 0) return '';
+
+    const latest = history[history.length - 1].status_type;
+    const isCanceled = latest === TripState.CANCELED;
+    const isDelayed = latest === TripState.DELAYED;
+
+    // Furthest core step reached (delayed sits on the "En Tránsito" step).
+    let currentIndex = -1;
+    history.forEach((h) => {
+        let idx = STEP_INDEX[h.status_type];
+        if (idx === undefined && h.status_type === TripState.DELAYED) idx = STEP_INDEX[TripState.IN_TRANSIT];
+        if (idx !== undefined && idx > currentIndex) currentIndex = idx;
+    });
+    if (currentIndex < 0) currentIndex = 0;
+
+    const checkIcon = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"></path></svg>`;
+    const alertIcon = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="8" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>`;
+
+    const nodes = STEPS.map((step, i) => {
+        const reached = i <= currentIndex;
+        const current = i === currentIndex;
+
+        let circle;
+        let labelCls;
+        if (reached) {
+            const bg = (current && isDelayed) ? 'bg-red-500' : 'bg-icon';
+            circle = `<div class="w-8 h-8 rounded-full ${bg} flex items-center justify-center text-white shadow-sm">${(current && isDelayed) ? alertIcon : checkIcon}</div>`;
+            labelCls = current
+                ? ((isDelayed ? 'text-red-600' : 'text-text') + ' font-bold')
+                : 'text-text';
+        } else {
+            circle = `<div class="w-8 h-8 rounded-full border-2 border-slate-300 bg-white"></div>`;
+            labelCls = 'text-slate-400';
+        }
+
+        const connector = i === 0
+            ? ''
+            : `<div class="flex-1 h-1 mt-[14px] rounded-full ${reached ? (isDelayed ? 'bg-red-400' : 'bg-icon') : 'bg-slate-200'}"></div>`;
+
+        return `
+            ${connector}
+            <div class="flex flex-col items-center flex-shrink-0 w-16 sm:w-20">
+                ${circle}
+                <span class="mt-2 text-[11px] sm:text-xs text-center leading-tight ${labelCls}">${step.label}</span>
+            </div>
+        `;
+    }).join('');
+
+    let titleLabel;
+    let titleCls;
+    if (isCanceled) {
+        titleLabel = 'Cancelado';
+        titleCls = 'text-slate-600';
+    } else if (isDelayed) {
+        titleLabel = 'Atrasado';
+        titleCls = 'text-red-600';
+    } else {
+        titleLabel = STEPS[currentIndex].label;
+        titleCls = 'text-text';
+    }
+
+    const canceledBanner = isCanceled
+        ? `<div class="mt-4 flex items-center gap-2 text-sm text-slate-600 bg-slate-100 border border-slate-300 rounded-lg px-3 py-2">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="flex-shrink-0 text-slate-500"><circle cx="12" cy="12" r="10"></circle><path d="m15 9-6 6"></path><path d="m9 9 6 6"></path></svg>
+                Este viaje fue cancelado.
+           </div>`
+        : '';
+
+    return `
+        <div class="mb-5 rounded-lg border border-border bg-white p-4 sm:p-5">
+            <h3 class="text-lg sm:text-xl font-bold mb-4 ${titleCls}">${titleLabel}</h3>
+            <div class="flex items-start justify-between gap-1 px-1">
+                ${nodes}
+            </div>
+            ${canceledBanner}
         </div>
     `;
 }
 
 function buildStatusNotice(trip) {
     const notices = {
-        buscando: {
+        [TripState.GATHERING_DRIVERS]: {
             style: 'bg-amber-50 border-amber-300 text-amber-800',
             iconColor: 'text-amber-500',
             title: 'Búsqueda de transportistas en curso',
             message: 'Este viaje aún no cuenta con todos los transportistas solicitados. Se sigue buscando cobertura para completar la asignación.',
             icon: '<circle cx="12" cy="12" r="10"></circle><path d="M12 8v4"></path><path d="M12 16h.01"></path>'
         },
-        coordinado: {
+        [TripState.COORDINATED]: {
             style: 'bg-sky-50 border-sky-300 text-sky-800',
             iconColor: 'text-sky-500',
             title: 'Viaje coordinado',
             message: 'Este viaje ya está coordinado. La fecha de salida se encuentra programada para una fecha futura y todos los transportistas están asignados.',
             icon: '<path d="M20 6 9 17l-5-5"></path>'
         },
-        atrasado: {
+        [TripState.IN_TRANSIT]: {
+            style: 'bg-blue-50 border-blue-300 text-blue-800',
+            iconColor: 'text-blue-500',
+            title: 'Viaje en tránsito',
+            message: 'Este viaje se encuentra en servicio y avanza dentro del tiempo estimado hacia su destino.',
+            icon: '<circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline>'
+        },
+        [TripState.DELAYED]: {
             style: 'bg-red-50 border-red-300 text-red-800',
             iconColor: 'text-red-500',
             title: 'Viaje con atraso',
             message: 'Este viaje no ha sido completado y ya superó la fecha de llegada estimada (7 días por defecto). Se recomienda revisar el estatus con el transportista.',
             icon: '<path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3"></path><path d="M12 9v4"></path><path d="M12 17h.01"></path>'
         },
-        completado: {
+        [TripState.COMPLETED]: {
             style: 'bg-emerald-50 border-emerald-300 text-emerald-800',
             iconColor: 'text-emerald-500',
             title: 'Viaje completado',
             message: 'Este viaje se ha completado con éxito. La carga fue entregada dentro del periodo establecido.',
             icon: '<circle cx="12" cy="12" r="10"></circle><path d="m9 12 2 2 4-4"></path>'
         },
-        tiempo: {
-            style: 'bg-green-50 border-green-300 text-green-800',
-            iconColor: 'text-green-500',
-            title: 'Viaje en tiempo',
-            message: 'Este viaje se encuentra en servicio y avanza dentro del tiempo estimado hacia su destino.',
-            icon: '<circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline>'
+        [TripState.CANCELED]: {
+            style: 'bg-slate-100 border-slate-300 text-slate-700',
+            iconColor: 'text-slate-500',
+            title: 'Viaje cancelado',
+            message: 'Este viaje fue cancelado y ya no se encuentra activo.',
+            icon: '<circle cx="12" cy="12" r="10"></circle><path d="m15 9-6 6"></path><path d="m9 9 6 6"></path>'
         }
     };
 
