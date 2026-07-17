@@ -84,6 +84,19 @@ def get_trips():
             """
         )
         driver_rows = cursor.fetchall()
+
+        cursor.execute(
+            """
+            SELECT
+                trip_id,
+                status_type,
+                description,
+                changed_timestamp
+            FROM trip_status_history
+            ORDER BY changed_timestamp ASC
+            """
+        )
+        history_rows = cursor.fetchall()
     except mysql.connector.Error as exc:
         raise HTTPException(status_code=500, detail=f"MySQL query error: {exc}") from exc
     finally:
@@ -95,6 +108,16 @@ def get_trips():
             {
                 "nickname": _serialize(row["nickname"]),
                 "driver_confirmation_message": _serialize(row["driver_confirmation_message"]),
+            }
+        )
+
+    history_by_trip = {}
+    for row in history_rows:
+        history_by_trip.setdefault(row["trip_id"], []).append(
+            {
+                "status_type": _serialize(row["status_type"]),
+                "description": _serialize(row["description"]),
+                "changed_timestamp": _serialize(row["changed_timestamp"]),
             }
         )
 
@@ -115,6 +138,7 @@ def get_trips():
                 "grupo": _serialize(row["group_name"]),
                 "eta": _serialize(row["eta_datetime"]),
                 "mensaje": _serialize(row["message_content"]),
+                "historial": history_by_trip.get(row["message_id"], []),
             }
         )
 

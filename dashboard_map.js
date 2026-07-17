@@ -380,7 +380,7 @@ function buildTripDetails(trip) {
     const usedKeys = new Set([
         'estado', 'origen', 'destino', 'fecha_salida',
         'tipo_carga', 'cantidadActualDeTransportistas', 'cantidadTransportistas',
-        'transportistas'
+        'transportistas', 'historial'
     ]);
 
     const prettyLabel = (key) => key
@@ -444,6 +444,7 @@ function buildTripDetails(trip) {
 
     return `
         <div>
+            ${buildStatusBar(trip)}
             ${buildStatusNotice(trip)}
             ${buildDriversList(trip)}
             ${detailsSection}
@@ -522,6 +523,104 @@ function buildDriversList(trip) {
             <ul class="grid grid-cols-1 sm:grid-cols-2 gap-2">
                 ${items}
             </ul>
+        </div>
+    `;
+}
+
+function buildStatusBar(trip) {
+    const STEPS = [
+        { key: TripState.GATHERING_DRIVERS, label: 'Buscando' },
+        { key: TripState.COORDINATED,       label: 'Coordinado' },
+        { key: TripState.IN_TRANSIT,        label: 'En Tránsito' },
+        { key: TripState.COMPLETED,         label: 'Completado' },
+    ];
+    const STEP_INDEX = {
+        [TripState.GATHERING_DRIVERS]: 0,
+        [TripState.COORDINATED]:       1,
+        [TripState.IN_TRANSIT]:        2,
+        [TripState.COMPLETED]:         3,
+    };
+
+    // Prefer the recorded history; fall back to the trip's current state.
+    const history = (Array.isArray(trip.historial) && trip.historial.length)
+        ? trip.historial
+        : (trip.estado ? [{ status_type: trip.estado }] : []);
+
+    if (history.length === 0) return '';
+
+    const latest = history[history.length - 1].status_type;
+    const isCanceled = latest === TripState.CANCELED;
+    const isDelayed = latest === TripState.DELAYED;
+
+    // Furthest core step reached (delayed sits on the "En Tránsito" step).
+    let currentIndex = -1;
+    history.forEach((h) => {
+        let idx = STEP_INDEX[h.status_type];
+        if (idx === undefined && h.status_type === TripState.DELAYED) idx = STEP_INDEX[TripState.IN_TRANSIT];
+        if (idx !== undefined && idx > currentIndex) currentIndex = idx;
+    });
+    if (currentIndex < 0) currentIndex = 0;
+
+    const checkIcon = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"></path></svg>`;
+    const alertIcon = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="8" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>`;
+
+    const nodes = STEPS.map((step, i) => {
+        const reached = i <= currentIndex;
+        const current = i === currentIndex;
+
+        let circle;
+        let labelCls;
+        if (reached) {
+            const bg = (current && isDelayed) ? 'bg-red-500' : 'bg-icon';
+            circle = `<div class="w-8 h-8 rounded-full ${bg} flex items-center justify-center text-white shadow-sm">${(current && isDelayed) ? alertIcon : checkIcon}</div>`;
+            labelCls = current
+                ? ((isDelayed ? 'text-red-600' : 'text-text') + ' font-bold')
+                : 'text-text';
+        } else {
+            circle = `<div class="w-8 h-8 rounded-full border-2 border-slate-300 bg-white"></div>`;
+            labelCls = 'text-slate-400';
+        }
+
+        const connector = i === 0
+            ? ''
+            : `<div class="flex-1 h-1 mt-[14px] rounded-full ${reached ? (isDelayed ? 'bg-red-400' : 'bg-icon') : 'bg-slate-200'}"></div>`;
+
+        return `
+            ${connector}
+            <div class="flex flex-col items-center flex-shrink-0 w-16 sm:w-20">
+                ${circle}
+                <span class="mt-2 text-[11px] sm:text-xs text-center leading-tight ${labelCls}">${step.label}</span>
+            </div>
+        `;
+    }).join('');
+
+    let titleLabel;
+    let titleCls;
+    if (isCanceled) {
+        titleLabel = 'Cancelado';
+        titleCls = 'text-slate-600';
+    } else if (isDelayed) {
+        titleLabel = 'Atrasado';
+        titleCls = 'text-red-600';
+    } else {
+        titleLabel = STEPS[currentIndex].label;
+        titleCls = 'text-text';
+    }
+
+    const canceledBanner = isCanceled
+        ? `<div class="mt-4 flex items-center gap-2 text-sm text-slate-600 bg-slate-100 border border-slate-300 rounded-lg px-3 py-2">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="flex-shrink-0 text-slate-500"><circle cx="12" cy="12" r="10"></circle><path d="m15 9-6 6"></path><path d="m9 9 6 6"></path></svg>
+                Este viaje fue cancelado.
+           </div>`
+        : '';
+
+    return `
+        <div class="mb-5 rounded-lg border border-border bg-white p-4 sm:p-5">
+            <h3 class="text-lg sm:text-xl font-bold mb-4 ${titleCls}">${titleLabel}</h3>
+            <div class="flex items-start justify-between gap-1 px-1">
+                ${nodes}
+            </div>
+            ${canceledBanner}
         </div>
     `;
 }
