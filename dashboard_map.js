@@ -21,6 +21,10 @@ let currentMapMode = 'origen';
 let currentFilteredTrips = [];
 let currentFilterName = "";
 let currentDetailFilter = null;
+let currentPage = 1;
+const PAGE_SIZE = 10;
+let searchQuery = "";
+let sortOrder = "newest";
 
 const TripState = {
     GATHERING_DRIVERS: 'gatheringDrivers',
@@ -66,6 +70,30 @@ document.getElementById('logoutBtn').addEventListener('click', () => {
         .catch((error) => {
             console.error("Logout error: ", error);
         });
+});
+
+document.getElementById('trip-search').addEventListener('input', (e) => {
+    searchQuery = e.target.value;
+    currentPage = 1;
+    renderTripList();
+});
+
+document.getElementById('trip-sort').addEventListener('change', (e) => {
+    sortOrder = e.target.value;
+    currentPage = 1;
+    renderTripList();
+});
+
+document.getElementById('btn-prev').addEventListener('click', () => {
+    if (currentPage > 1) {
+        currentPage--;
+        renderTripList();
+    }
+});
+
+document.getElementById('btn-next').addEventListener('click', () => {
+    currentPage++;
+    renderTripList();
 });
 
 async function fetchTrips() {
@@ -216,11 +244,6 @@ window.showDetails = function(filterType, filterValue) {
 
     currentDetailFilter = { type: filterType, value: filterValue };
 
-    const tableBody = document.getElementById('detail-table-body');
-    const cardList = document.getElementById('detail-card-list');
-    tableBody.innerHTML = '';
-    if (cardList) cardList.innerHTML = '';
-
     if (filterType === 'status') {
         if (filterValue === 'incidencias') {
             document.getElementById('table-title').innerText = 'Viajes filtrados que presentan al menos una incidencia';
@@ -252,7 +275,41 @@ window.showDetails = function(filterType, filterValue) {
         currentFilterName = "all_trips";
     }
 
-    if (currentFilteredTrips.length === 0) {
+    currentPage = 1;
+    renderTripList();
+};
+
+function renderTripList() {
+    const tableBody = document.getElementById('detail-table-body');
+    const cardList = document.getElementById('detail-card-list');
+    tableBody.innerHTML = '';
+    if (cardList) cardList.innerHTML = '';
+
+    const info = document.getElementById('pagination-info');
+    const btnPrev = document.getElementById('btn-prev');
+    const btnNext = document.getElementById('btn-next');
+
+    let trips = currentFilteredTrips;
+
+    const query = searchQuery.trim().toLowerCase();
+    if (query) {
+        trips = trips.filter(t =>
+            String(t.origen || '').toLowerCase().includes(query) ||
+            String(t.destino || '').toLowerCase().includes(query)
+        );
+    }
+
+    trips = trips.slice().sort((a, b) => {
+        const ta = a.fecha_mensaje ? new Date(a.fecha_mensaje).getTime() : NaN;
+        const tb = b.fecha_mensaje ? new Date(b.fecha_mensaje).getTime() : NaN;
+        const va = isNaN(ta) ? 0 : ta;
+        const vb = isNaN(tb) ? 0 : tb;
+        return sortOrder === 'newest' ? vb - va : va - vb;
+    });
+
+    const total = trips.length;
+
+    if (total === 0) {
         tableBody.innerHTML = `
             <tr>
                 <td colspan="7" class="px-6 py-8 text-center text-sm text-slate-500 italic">
@@ -267,10 +324,20 @@ window.showDetails = function(filterType, filterValue) {
                 </div>
             `;
         }
+        if (info) info.textContent = '0 viajes';
+        if (btnPrev) btnPrev.disabled = true;
+        if (btnNext) btnNext.disabled = true;
         return;
     }
 
-    currentFilteredTrips.forEach((trip, index) => {
+    const totalPages = Math.ceil(total / PAGE_SIZE);
+    if (currentPage > totalPages) currentPage = totalPages;
+    if (currentPage < 1) currentPage = 1;
+
+    const startIdx = (currentPage - 1) * PAGE_SIZE;
+    const pageTrips = trips.slice(startIdx, startIdx + PAGE_SIZE);
+
+    pageTrips.forEach((trip, index) => {
         const badgeStyle = STATE_BADGES[trip.estado] || "bg-slate-100 text-slate-800";
         const stateLabel = STATE_LABELS[trip.estado] || trip.estado || 'N/A';
 
@@ -374,7 +441,11 @@ window.showDetails = function(filterType, filterValue) {
             cardList.appendChild(card);
         }
     });
-};
+
+    if (info) info.textContent = `${startIdx + 1}-${startIdx + pageTrips.length} de ${total}`;
+    if (btnPrev) btnPrev.disabled = currentPage <= 1;
+    if (btnNext) btnNext.disabled = currentPage >= totalPages;
+}
 
 function buildTripDetails(trip) {
     const usedKeys = new Set([
@@ -697,7 +768,15 @@ function escapeHtml(str) {
 }
 
 window.exportToCSV = function() {
-    if (currentFilteredTrips.length === 0) {
+    const query = searchQuery.trim().toLowerCase();
+    const exportTrips = query
+        ? currentFilteredTrips.filter(t =>
+            String(t.origen || '').toLowerCase().includes(query) ||
+            String(t.destino || '').toLowerCase().includes(query)
+        )
+        : currentFilteredTrips;
+
+    if (exportTrips.length === 0) {
         alert("No hay datos para exportar");
         return;
     }
@@ -705,7 +784,7 @@ window.exportToCSV = function() {
     const headers = ["Estado", "Origen", "Destino", "Fecha Salida", "Tipo Carga", "Transportista"];
     const csvRows = [headers.join(",")];
 
-    currentFilteredTrips.forEach(trip => {
+    exportTrips.forEach(trip => {
         const row = [
             `"${trip.estado || ''}"`,
             `"${trip.origen || ''}"`,

@@ -4,7 +4,6 @@ Data source migrated from Firestore to a local MySQL database. The frontend
 (dashboard_map.js) expects Spanish-keyed trip objects, so the /api/trips endpoint
 maps the MySQL columns to those keys to keep the UI unchanged.
 """
-
 from datetime import date, datetime, time
 from decimal import Decimal
 from pathlib import Path
@@ -14,12 +13,17 @@ from fastapi import FastAPI, HTTPException
 from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
 
+import os
+from dotenv import load_dotenv
+
+load_dotenv()
+
 DB_CONFIG = {
-    "host": "localhost",
-    "port": 3307,
-    "user": "root",
-    "password": "",
-    "database": "CrossDock",
+    "host": os.getenv("DB_HOST", "localhost"),
+    "port": int(os.getenv("DB_PORT", "3307")),
+    "user": os.getenv("DB_USER", "root"),
+    "password": os.getenv("DB_PASSWORD", ""),
+    "database": os.getenv("DB_NAME", "CrossDock"),
 }
 
 # Repo root (one level up from this backend/ folder) holds the static frontend.
@@ -63,6 +67,7 @@ def get_trips():
                 t.n_drivers_needed,
                 t.departure_datetime,
                 t.eta_datetime,
+                t.message_date,
                 t.cargo_type,
                 t.state,
                 g.name AS group_name
@@ -138,6 +143,7 @@ def get_trips():
                 "grupo": _serialize(row["group_name"]),
                 "eta": _serialize(row["eta_datetime"]),
                 "mensaje": _serialize(row["message_content"]),
+                "fecha_mensaje": _serialize(row["message_date"]),
                 "historial": history_by_trip.get(row["message_id"], []),
             }
         )

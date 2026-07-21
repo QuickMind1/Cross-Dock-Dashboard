@@ -209,6 +209,23 @@
                 </div>
             </div>
 
+            <!-- ========== CONTROLS: search + sort ========== -->
+            <div class="flex flex-col sm:flex-row sm:items-center gap-3 mb-4">
+                <div class="relative flex-1">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-search absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none">
+                        <circle cx="11" cy="11" r="8"></circle>
+                        <path d="m21 21-4.35-4.35"></path>
+                    </svg>
+                    <input id="trip-search" type="text" placeholder="Buscar por origen o destino..."
+                           class="w-full pl-10 pr-4 py-2 text-sm rounded-md border border-border bg-white text-slate-800 focus:outline-none focus:ring-2 focus:ring-icon placeholder:text-slate-400">
+                </div>
+                <select id="trip-sort" aria-label="Ordenar viajes"
+                        class="w-full sm:w-auto py-2 px-3 text-sm rounded-md border border-border bg-white text-slate-800 focus:outline-none focus:ring-2 focus:ring-icon">
+                    <option value="newest">Más recientes primero</option>
+                    <option value="oldest">Más antiguos primero</option>
+                </select>
+            </div>
+
             <!-- ========== DESKTOP: classic table (hidden below md) ========== -->
             <div class="hidden md:block overflow-x-auto rounded-lg border border-border">
                 <table class="w-full text-sm text-left">
@@ -229,6 +246,21 @@
 
             <!-- ========== MOBILE: card list (hidden on md+) ========== -->
             <div id="detail-card-list" class="md:hidden flex flex-col gap-3"></div>
+
+            <!-- ========== PAGINATION FOOTER ========== -->
+            <div id="pagination-footer" class="flex flex-col sm:flex-row items-center justify-between gap-3 mt-4">
+                <p id="pagination-info" class="text-sm text-slate-500"></p>
+                <div class="flex items-center gap-2">
+                    <button id="btn-prev" class="flex items-center gap-1 px-3 py-2 rounded-md border border-border bg-white text-slate-700 text-sm font-medium transition-colors hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"></path></svg>
+                        Anterior
+                    </button>
+                    <button id="btn-next" class="flex items-center gap-1 px-3 py-2 rounded-md border border-border bg-white text-slate-700 text-sm font-medium transition-colors hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed">
+                        Siguiente
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"></path></svg>
+                    </button>
+                </div>
+            </div>
         </div>
     </div>
 
