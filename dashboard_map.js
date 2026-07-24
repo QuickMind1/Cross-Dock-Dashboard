@@ -98,7 +98,7 @@ document.getElementById('btn-next').addEventListener('click', () => {
 
 async function fetchTrips() {
     try {
-        const response = await fetch('/api/trips');
+        const response = await fetch('https://crossdock-api-2268808257.us-east1.run.app/api/trips');
         if (!response.ok) {
             throw new Error(`HTTP ${response.status}`);
         }

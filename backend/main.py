@@ -12,11 +12,12 @@ import mysql.connector
 from fastapi import FastAPI, HTTPException
 from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
+from fastapi.middleware.cors import CORSMiddleware
 
 import os
-from dotenv import load_dotenv
+#from dotenv import load_dotenv
 
-load_dotenv()
+#load_dotenv()
 
 DB_CONFIG = {
     "host": os.getenv("DB_HOST", "localhost"),
@@ -26,11 +27,14 @@ DB_CONFIG = {
     "database": os.getenv("DB_NAME", "CrossDock"),
 }
 
-# Repo root (one level up from this backend/ folder) holds the static frontend.
-FRONTEND_DIR = Path(__file__).resolve().parent.parent
-
 app = FastAPI(title="Cross Dock Dashboard API")
 
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["https://quickmind1.github.io"],
+    allow_methods=["GET"],
+    allow_headers=["*"],
+)
 
 def get_connection():
     try:
@@ -150,7 +154,3 @@ def get_trips():
 
     return JSONResponse(content=trips)
 
-
-# Serve the static frontend from the repo root so everything is same-origin
-# (index.html, dashboard.html, dashboard_map.js, auth.js, image_sources/...).
-app.mount("/", StaticFiles(directory=str(FRONTEND_DIR), html=True), name="static")
