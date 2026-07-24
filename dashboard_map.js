@@ -162,13 +162,32 @@ function processDataAndDrawMap() {
 // re-fits its container after a window resize / device rotation.
 window.redrawMap = processDataAndDrawMap;
 
+// Google GeoChart's Mexico province map still uses the pre-2016 ISO codes,
+// so Mexico City must be sent as MX-DIF (Distrito Federal) even though the
+// API returns the current MX-CMX (Ciudad de México). Any code not listed
+// here is passed through unchanged.
+const GEO_CODE_ALIASES = { 'MX-CMX': 'MX-DIF' };
+const GEO_CODE_ALIASES_REVERSE = Object.fromEntries(
+    Object.entries(GEO_CODE_ALIASES).map(([appCode, geoCode]) => [geoCode, appCode])
+);
+
+// App ISO code -> code that GeoChart understands.
+function toGeoChartCode(stateCode) {
+    return GEO_CODE_ALIASES[stateCode] || stateCode;
+}
+
+// GeoChart code (from a map selection) -> app ISO code used across the data.
+function fromGeoChartCode(geoCode) {
+    return GEO_CODE_ALIASES_REVERSE[geoCode] || geoCode;
+}
+
 function drawMap(stateCounts) {
     mapData = new google.visualization.DataTable();
     mapData.addColumn('string', 'Estado');
     mapData.addColumn('number', 'Viajes Activos');
 
     for (const [stateCode, count] of Object.entries(stateCounts)) {
-        mapData.addRow([stateCode, count]);
+        mapData.addRow([toGeoChartCode(stateCode), count]);
     }
 
     const options = {
@@ -200,7 +219,7 @@ function drawMap(stateCounts) {
     google.visualization.events.addListener(geoChart, 'select', () => {
         const selection = geoChart.getSelection();
         if (selection.length > 0) {
-            const stateCode = mapData.getValue(selection[0].row, 0);
+            const stateCode = fromGeoChartCode(mapData.getValue(selection[0].row, 0));
             window.showDetails('state', stateCode);
         }
     });
