@@ -147,8 +147,9 @@ function processDataAndDrawMap() {
     let stateCounts = {};
 
     allTrips.forEach((trip) => {
-        const targetLocation = currentMapMode === 'origen' ? trip.origen : trip.destino;
-        const stateCode = mapOriginToStateCode(targetLocation);
+        const stateCode = currentMapMode === 'origen'
+            ? (trip.origen_iso || mapOriginToStateCode(trip.origen))
+            : (trip.destino_iso || mapOriginToStateCode(trip.destino));
         if (stateCode) {
             stateCounts[stateCode] = (stateCounts[stateCode] || 0) + 1;
         }
@@ -265,8 +266,10 @@ window.showDetails = function(filterType, filterValue) {
         document.getElementById('table-title').innerText = `Viajes con ${modeText} en ${filterValue.replace('MX-', '')}`;
         currentFilterName = filterValue.replace('MX-', '');
         currentFilteredTrips = allTrips.filter(t => { 
-            const targetLocation = currentMapMode === 'origen' ? t.origen : t.destino;
-            return mapOriginToStateCode(targetLocation) === filterValue;
+            const stateCode = currentMapMode === 'origen'
+                ? (t.origen_iso || mapOriginToStateCode(t.origen))
+                : (t.destino_iso || mapOriginToStateCode(t.destino));
+            return stateCode === filterValue;
         });
     } else {
         document.getElementById('table-title').innerText = 'Mostrando todos los viajes';
