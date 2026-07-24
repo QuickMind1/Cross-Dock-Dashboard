@@ -175,6 +175,11 @@ function drawMap(stateCounts) {
         region: 'MX',
         resolution: 'provinces',
         colorAxis: {
+            // Pin the low end to 0 so that when only a single state has data
+            // (min === max), GeoChart still has a valid range to interpolate
+            // over and colors the region at the strong end of the gradient
+            // instead of leaving it blank.
+            minValue: 0,
             colors: currentMapMode === 'origen' 
                 ? ['#FFD5DE', '#FF6B8A', '#E52E4F']
                 : ['#c1c1ee', '#6565b1', '#1A1A2E']
