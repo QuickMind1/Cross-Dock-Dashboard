@@ -18,6 +18,7 @@ let allTrips = [];
 let geoChart;
 let mapData;
 let currentMapMode = 'origen';
+let mapContainerListenerAttached = false;
 let currentFilteredTrips = [];
 let currentFilterName = "";
 let currentDetailFilter = null;
@@ -156,6 +157,10 @@ function processDataAndDrawMap() {
     drawMap(stateCounts);
 }
 
+// Exposed for dashboard.html's debounced resize handler so the GeoChart
+// re-fits its container after a window resize / device rotation.
+window.redrawMap = processDataAndDrawMap;
+
 function drawMap(stateCounts) {
     mapData = new google.visualization.DataTable();
     mapData.addColumn('string', 'Estado');
@@ -178,14 +183,14 @@ function drawMap(stateCounts) {
         defaultColor: '#f5f5f5',
     };
 
-    const mapContainer = document.getElementById('map-div');
+    const mapContainer = document.getElementById('map_div');
 
     if (geoChart) {
         geoChart.clearChart();
     }
 
     geoChart = new google.visualization.GeoChart(mapContainer);
-    
+
     google.visualization.events.addListener(geoChart, 'select', () => {
         const selection = geoChart.getSelection();
         if (selection.length > 0) {
@@ -194,27 +199,21 @@ function drawMap(stateCounts) {
         }
     });
 
-    geoChart.draw(mapData, options);
-    
-    mapContainer.addEventListener('mouseover', function(e) {
-        if (e.target.tagName === 'path') {
-            const fill = e.target.getAttribute('fill');
+    // Attach the cursor handler only once; drawMap can run many times.
+    if (!mapContainerListenerAttached) {
+        mapContainer.addEventListener('mouseover', function(e) {
+            if (e.target.tagName === 'path') {
+                const fill = e.target.getAttribute('fill');
 
-            if (fill && (fill.toLowerCase() === '#eaeaea' || fill.toLowerCase() === '#f5f5f5')) {
-                e.target.style.cursor = 'default';
-            } else {
-                e.target.style.cursor = 'pointer';
+                if (fill && (fill.toLowerCase() === '#eaeaea' || fill.toLowerCase() === '#f5f5f5')) {
+                    e.target.style.cursor = 'default';
+                } else {
+                    e.target.style.cursor = 'pointer';
+                }
             }
-        }
-    });
-
-    google.visualization.events.addListener(geoChart, 'select', () => {
-        const selection = geoChart.getSelection();
-        if (selection.length > 0) {
-            const stateCode = mapData.getValue(selection[0].row, 0);
-            window.showDetails('state', stateCode);
-        }
-    });
+        });
+        mapContainerListenerAttached = true;
+    }
 
     geoChart.draw(mapData, options);
 }
