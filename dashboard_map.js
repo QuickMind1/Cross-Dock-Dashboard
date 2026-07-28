@@ -377,7 +377,7 @@ function renderTripList() {
     if (total === 0) {
         tableBody.innerHTML = `
             <tr>
-                <td colspan="7" class="px-6 py-8 text-center text-sm text-slate-500 italic">
+                <td colspan="8" class="px-6 py-8 text-center text-sm text-slate-500 italic">
                     No hay viajes que coincidan con este filtro.
                 </td>
             </tr>
@@ -420,6 +420,7 @@ function renderTripList() {
                     ${stateLabel}
                 </span>
             </td>
+            <td class="px-6 py-4 text-slate-600">${trip.empresa || 'N/A'}</td>
             <td class="px-6 py-4 font-medium text-slate-800">${trip.origen || 'N/A'}</td>
             <td class="px-6 py-4 text-slate-600">${trip.destino || 'N/A'}</td>
             <td class="px-6 py-4 text-slate-600">${
@@ -438,7 +439,7 @@ function renderTripList() {
         const detailsRow = document.createElement('tr');
         detailsRow.className = "trip-details-row hidden bg-slate-50/70";
         detailsRow.innerHTML = `
-            <td colspan="7" class="px-6 py-5 border-l-4 border-icon">
+            <td colspan="8" class="px-6 py-5 border-l-4 border-icon">
                 ${buildTripDetails(trip)}
             </td>
         `;

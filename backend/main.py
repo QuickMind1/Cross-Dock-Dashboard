@@ -74,9 +74,11 @@ def get_trips():
                 t.message_date,
                 t.cargo_type,
                 t.state,
-                g.name AS group_name
+                g.name AS group_name,
+                c.company_name AS company_name
             FROM trips t
             LEFT JOIN wa_groups g ON t.group_id = g.group_id
+            LEFT JOIN companies c ON g.id_company = c.id_company
             """
         )
         trip_rows = cursor.fetchall()
@@ -137,6 +139,7 @@ def get_trips():
             {
                 "message_id": _serialize(row["message_id"]),
                 "estado": _serialize(row["state"]),
+                "empresa": _serialize(row["company_name"]),
                 "origen": _serialize(row["origin"]),
                 "destino": _serialize(row["destination"]),
                 "fecha_salida": _serialize(row["departure_datetime"]),
