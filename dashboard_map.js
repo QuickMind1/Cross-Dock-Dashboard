@@ -26,6 +26,7 @@ let currentPage = 1;
 const PAGE_SIZE = 10;
 let searchQuery = "";
 let sortOrder = "newest";
+let groupFilter = "";
 
 const TripState = {
     GATHERING_DRIVERS: 'gatheringDrivers',
@@ -85,6 +86,12 @@ document.getElementById('trip-sort').addEventListener('change', (e) => {
     renderTripList();
 });
 
+document.getElementById('trip-group').addEventListener('change', (e) => {
+    groupFilter = e.target.value;
+    currentPage = 1;
+    renderTripList();
+});
+
 document.getElementById('btn-prev').addEventListener('click', () => {
     if (currentPage > 1) {
         currentPage--;
@@ -106,6 +113,7 @@ async function fetchTrips() {
         const trips = await response.json();
 
         allTrips = trips;
+        populateGroupFilter();
         let coordinated = 0, gatheringDrivers = 0, delayed = 0, completed = 0, inTransit = 0, canceled = 0;
 
         allTrips.forEach((trip) => {
@@ -142,6 +150,33 @@ async function fetchTrips() {
 }
 
 window.refreshTrips = fetchTrips;
+
+// Fills the "grupo" dropdown with the distinct group names present in the
+// current trip data. Keeps the user's current selection when possible so a
+// refresh doesn't silently reset the active filter.
+function populateGroupFilter() {
+    const select = document.getElementById('trip-group');
+    if (!select) return;
+
+    const groups = Array.from(
+        new Set(
+            allTrips
+                .map(t => t.grupo)
+                .filter(g => g !== null && g !== undefined && String(g).trim() !== '')
+                .map(g => String(g))
+        )
+    ).sort((a, b) => a.localeCompare(b, 'es', { sensitivity: 'base' }));
+
+    // If the previously selected group is gone, fall back to "all groups".
+    if (groupFilter && !groups.includes(groupFilter)) {
+        groupFilter = "";
+    }
+
+    select.innerHTML = '<option value="">Todos los grupos</option>' +
+        groups.map(g => `<option value="${escapeHtml(g)}">${escapeHtml(g)}</option>`).join('');
+
+    select.value = groupFilter;
+}
 
 function processDataAndDrawMap() {
     let stateCounts = {};
@@ -316,6 +351,10 @@ function renderTripList() {
     const btnNext = document.getElementById('btn-next');
 
     let trips = currentFilteredTrips;
+
+    if (groupFilter) {
+        trips = trips.filter(t => String(t.grupo || '') === groupFilter);
+    }
 
     const query = searchQuery.trim().toLowerCase();
     if (query) {
@@ -795,24 +834,31 @@ function escapeHtml(str) {
 
 window.exportToCSV = function() {
     const query = searchQuery.trim().toLowerCase();
-    const exportTrips = query
-        ? currentFilteredTrips.filter(t =>
+    let exportTrips = currentFilteredTrips;
+
+    if (groupFilter) {
+        exportTrips = exportTrips.filter(t => String(t.grupo || '') === groupFilter);
+    }
+
+    if (query) {
+        exportTrips = exportTrips.filter(t =>
             String(t.origen || '').toLowerCase().includes(query) ||
             String(t.destino || '').toLowerCase().includes(query)
-        )
-        : currentFilteredTrips;
+        );
+    }
 
     if (exportTrips.length === 0) {
         alert("No hay datos para exportar");
         return;
     }
 
-    const headers = ["Estado", "Origen", "Destino", "Fecha Salida", "Tipo Carga", "Transportista"];
+    const headers = ["Estado", "Grupo", "Origen", "Destino", "Fecha Salida", "Tipo Carga", "Transportista"];
     const csvRows = [headers.join(",")];
 
     exportTrips.forEach(trip => {
         const row = [
             `"${trip.estado || ''}"`,
+            `"${trip.grupo || 'N/A'}"`,
             `"${trip.origen || ''}"`,
             `"${trip.destino || ''}"`,
             `"${trip.fecha_salida || ''}"`,
