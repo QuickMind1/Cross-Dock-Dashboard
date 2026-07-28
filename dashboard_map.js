@@ -151,29 +151,29 @@ async function fetchTrips() {
 
 window.refreshTrips = fetchTrips;
 
-// Fills the "grupo" dropdown with the distinct group names present in the
+// Fills the company dropdown with the distinct company names present in the
 // current trip data. Keeps the user's current selection when possible so a
 // refresh doesn't silently reset the active filter.
 function populateGroupFilter() {
     const select = document.getElementById('trip-group');
     if (!select) return;
 
-    const groups = Array.from(
+    const companies = Array.from(
         new Set(
             allTrips
-                .map(t => t.grupo)
-                .filter(g => g !== null && g !== undefined && String(g).trim() !== '')
-                .map(g => String(g))
+                .map(t => t.empresa)
+                .filter(c => c !== null && c !== undefined && String(c).trim() !== '')
+                .map(c => String(c))
         )
     ).sort((a, b) => a.localeCompare(b, 'es', { sensitivity: 'base' }));
 
-    // If the previously selected group is gone, fall back to "all groups".
-    if (groupFilter && !groups.includes(groupFilter)) {
+    // If the previously selected company is gone, fall back to "all companies".
+    if (groupFilter && !companies.includes(groupFilter)) {
         groupFilter = "";
     }
 
-    select.innerHTML = '<option value="">Todos los grupos</option>' +
-        groups.map(g => `<option value="${escapeHtml(g)}">${escapeHtml(g)}</option>`).join('');
+    select.innerHTML = '<option value="">Todas las empresas</option>' +
+        companies.map(c => `<option value="${escapeHtml(c)}">${escapeHtml(c)}</option>`).join('');
 
     select.value = groupFilter;
 }
@@ -353,7 +353,7 @@ function renderTripList() {
     let trips = currentFilteredTrips;
 
     if (groupFilter) {
-        trips = trips.filter(t => String(t.grupo || '') === groupFilter);
+        trips = trips.filter(t => String(t.empresa || '') === groupFilter);
     }
 
     const query = searchQuery.trim().toLowerCase();
@@ -838,7 +838,7 @@ window.exportToCSV = function() {
     let exportTrips = currentFilteredTrips;
 
     if (groupFilter) {
-        exportTrips = exportTrips.filter(t => String(t.grupo || '') === groupFilter);
+        exportTrips = exportTrips.filter(t => String(t.empresa || '') === groupFilter);
     }
 
     if (query) {
