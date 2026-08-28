@@ -85,8 +85,8 @@
             Resumen General
         </h2>
 
-        <!-- ============ KPI CARDS: responsive grid (1 → 2 → 3 → 5 columns) ============ -->
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4 sm:gap-6 mb-8">
+        <!-- ============ KPI CARDS: responsive grid (1 → 2 → 3 → 6 columns) ============ -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4 sm:gap-6 mb-8">
 
             <!-- Total Viajes: spans full row on sm/lg to avoid an orphan card and act as the hero metric -->
             <div class="bg-surface p-4 sm:p-6 rounded-xl shadow-sm cursor-pointer border-2 border-transparent hover:border-orange-500 hover:-translate-y-1 transition-all duration-200 flex items-center justify-center gap-4 sm:gap-5 sm:col-span-2 lg:col-span-3 xl:col-span-1" onclick="showDetails('all', 'all')">
@@ -104,47 +104,65 @@
                 </div>
             </div>
 
-            <div class="bg-surface p-4 sm:p-6 rounded-xl shadow-sm cursor-pointer border-2 border-transparent hover:border-blue-500 hover:-translate-y-1 transition-all duration-200 flex items-center justify-center gap-4 sm:gap-5" onclick="showDetails('status', 'coordinated')">
-                <div class="text-blue-500 flex items-center justify-center flex-shrink-0">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-clock h-10 w-10 lg:h-14 lg:w-14">
-                        <circle cx="12" cy="12" r="10"></circle>
-                        <polyline points="12 6 12 12 16 14"></polyline>
-                    </svg>
-                </div>
-                <div class="text-left">
-                    <h3 class="m-0 text-slate-500 text-xs font-bold uppercase tracking-wider">A Tiempo</h3>
-                    <div class="text-3xl lg:text-4xl font-bold mt-1 text-text leading-tight" id="val-ontime">0</div>
-                </div>
-            </div>
-
-            <div class="bg-surface p-4 sm:p-6 rounded-xl shadow-sm cursor-pointer border-2 border-transparent hover:border-red-500 hover:-translate-y-1 transition-all duration-200 flex items-center justify-center gap-4 sm:gap-5" onclick="showDetails('status', 'delayed')">
-                <div class="text-red-500 flex items-center justify-center flex-shrink-0">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-triangle-alert h-10 w-10 lg:h-14 lg:w-14">
-                        <path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3"></path>
-                        <path d="M12 9v4"></path>
-                        <path d="M12 17h.01"></path>
-                    </svg>
-                </div>
-                <div class="text-left">
-                    <h3 class="m-0 text-slate-500 text-xs font-bold uppercase tracking-wider">Con Atraso</h3>
-                    <div class="text-3xl lg:text-4xl font-bold mt-1 text-text leading-tight" id="val-delayed">0</div>
-                </div>
-            </div>
-
-            <div class="bg-surface p-4 sm:p-6 rounded-xl shadow-sm cursor-pointer border-2 border-transparent hover:border-orange-500 hover:-translate-y-1 transition-all duration-200 flex items-center justify-center gap-4 sm:gap-5" onclick="showDetails('status', 'gatheringDrivers')">
+            <div class="bg-surface p-4 sm:p-6 rounded-xl shadow-sm cursor-pointer border-2 border-transparent hover:border-orange-400 hover:-translate-y-1 transition-all duration-200 flex items-center justify-center gap-4 sm:gap-5" onclick="showDetails('status', 'requested')">
                 <div class="text-orange-500 flex items-center justify-center flex-shrink-0">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-clipboard-list h-10 w-10 lg:h-14 lg:w-14">
+                        <rect width="8" height="4" x="8" y="2" rx="1" ry="1"></rect>
+                        <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path>
+                        <path d="M12 11h4"></path>
+                        <path d="M12 16h4"></path>
+                        <path d="M8 11h.01"></path>
+                        <path d="M8 16h.01"></path>
+                    </svg>
+                </div>
+                <div class="text-left">
+                    <h3 class="m-0 text-slate-500 text-xs font-bold uppercase tracking-wider">Solicitados</h3>
+                    <div class="text-3xl lg:text-4xl font-bold mt-1 text-text leading-tight" id="val-requested">0</div>
+                </div>
+            </div>
+
+            <div class="bg-surface p-4 sm:p-6 rounded-xl shadow-sm cursor-pointer border-2 border-transparent hover:border-slate-400 hover:-translate-y-1 transition-all duration-200 flex items-center justify-center gap-4 sm:gap-5" onclick="showDetails('status', 'creation')">
+                <div class="text-slate-500 flex items-center justify-center flex-shrink-0">
                     <svg xmlns="http://www.w3.org/2000/svg" width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-search h-10 w-10 lg:h-14 lg:w-14">
                         <circle cx="11" cy="11" r="8"></circle>
                         <path d="m21 21-4.35-4.35"></path>
                     </svg>
                 </div>
                 <div class="text-left">
-                    <h3 class="m-0 text-slate-500 text-xs font-bold uppercase tracking-wider">Buscando</h3>
-                    <div class="text-3xl lg:text-4xl font-bold mt-1 text-text leading-tight" id="val-incidence">0</div>
+                    <h3 class="m-0 text-slate-500 text-xs font-bold uppercase tracking-wider">Creados</h3>
+                    <div class="text-3xl lg:text-4xl font-bold mt-1 text-text leading-tight" id="val-creation">0</div>
                 </div>
             </div>
 
-            <div class="bg-surface p-4 sm:p-6 rounded-xl shadow-sm cursor-pointer border-2 border-transparent hover:border-green-500 hover:-translate-y-1 transition-all duration-200 flex items-center justify-center gap-4 sm:gap-5" onclick="showDetails('status', 'completed')">
+            <div class="bg-surface p-4 sm:p-6 rounded-xl shadow-sm cursor-pointer border-2 border-transparent hover:border-sky-500 hover:-translate-y-1 transition-all duration-200 flex items-center justify-center gap-4 sm:gap-5" onclick="showDetails('status', 'confirmation')">
+                <div class="text-sky-500 flex items-center justify-center flex-shrink-0">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-clock h-10 w-10 lg:h-14 lg:w-14">
+                        <circle cx="12" cy="12" r="10"></circle>
+                        <polyline points="12 6 12 12 16 14"></polyline>
+                    </svg>
+                </div>
+                <div class="text-left">
+                    <h3 class="m-0 text-slate-500 text-xs font-bold uppercase tracking-wider">Confirmados</h3>
+                    <div class="text-3xl lg:text-4xl font-bold mt-1 text-text leading-tight" id="val-confirmation">0</div>
+                </div>
+            </div>
+
+            <div class="bg-surface p-4 sm:p-6 rounded-xl shadow-sm cursor-pointer border-2 border-transparent hover:border-blue-500 hover:-translate-y-1 transition-all duration-200 flex items-center justify-center gap-4 sm:gap-5" onclick="showDetails('status', 'dispatched')">
+                <div class="text-blue-500 flex items-center justify-center flex-shrink-0">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-truck h-10 w-10 lg:h-14 lg:w-14">
+                        <path d="M14 18V6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v11a1 1 0 0 0 1 1h2"></path>
+                        <path d="M15 18H9"></path>
+                        <path d="M19 18h2a1 1 0 0 0 1-1v-3.65a1 1 0 0 0-.22-.624l-3.48-4.35A1 1 0 0 0 17.52 8H14"></path>
+                        <circle cx="17" cy="18" r="2"></circle><circle cx="7" cy="18" r="2"></circle>
+                    </svg>
+                </div>
+                <div class="text-left">
+                    <h3 class="m-0 text-slate-500 text-xs font-bold uppercase tracking-wider">En Tránsito</h3>
+                    <div class="text-3xl lg:text-4xl font-bold mt-1 text-text leading-tight" id="val-dispatched">0</div>
+                </div>
+            </div>
+
+            <div class="bg-surface p-4 sm:p-6 rounded-xl shadow-sm cursor-pointer border-2 border-transparent hover:border-green-500 hover:-translate-y-1 transition-all duration-200 flex items-center justify-center gap-4 sm:gap-5" onclick="showDetails('status', 'completion')">
                 <div class="text-green-500 flex items-center justify-center flex-shrink-0">
                     <svg xmlns="http://www.w3.org/2000/svg" width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-circle-check h-10 w-10 lg:h-14 lg:w-14">
                         <circle cx="12" cy="12" r="10"></circle>
@@ -153,7 +171,7 @@
                 </div>
                 <div class="text-left">
                     <h3 class="m-0 text-slate-500 text-xs font-bold uppercase tracking-wider">Completados</h3>
-                    <div class="text-3xl lg:text-4xl font-bold mt-1 text-text leading-tight" id="val-pendent">0</div>
+                    <div class="text-3xl lg:text-4xl font-bold mt-1 text-text leading-tight" id="val-completion">0</div>
                 </div>
             </div>
         </div>
@@ -240,9 +258,8 @@
                             <th class="px-6 py-4 font-semibold">Empresa</th>
                             <th class="px-6 py-4 font-semibold">Origen</th>
                             <th class="px-6 py-4 font-semibold">Destino</th>
-                            <th class="px-6 py-4 font-semibold">Salida</th>
-                            <th class="px-6 py-4 font-semibold">Carga</th>
-                            <th class="px-6 py-4 font-semibold">Transportistas</th>
+                            <th class="px-6 py-4 font-semibold">Fecha Creación</th>
+                            <th class="px-6 py-4 font-semibold">Transportista</th>
                         </tr>
                     </thead>
                     <tbody id="detail-table-body" class="divide-y divide-border"></tbody>
@@ -268,120 +285,6 @@
             </div>
         </div>
     </div>
-
-    <script>
-      /* ============================================================
-         Trip rendering — one function populates BOTH layouts:
-         the desktop table (#detail-table-body) and the mobile
-         card list (#detail-card-list).
-
-         Call from dashboard_map.js:
-             renderTrips([{ status, origen, destino, salida, carga, transportistas, detalles? }, ...])
-         ============================================================ */
-      const STATUS_STYLES = {
-          gatheringDrivers: { label: 'BUSCANDO',    badge: 'bg-amber-100 text-amber-800'   },
-          coordinated:      { label: 'COORDINADO',  badge: 'bg-sky-100 text-sky-800'       },
-          inTransit:        { label: 'EN TRÁNSITO', badge: 'bg-blue-100 text-blue-800'     },
-          delayed:          { label: 'ATRASADO',    badge: 'bg-red-100 text-red-700'       },
-          completed:        { label: 'COMPLETADO',  badge: 'bg-emerald-100 text-emerald-800' },
-          canceled:         { label: 'CANCELADO',   badge: 'bg-slate-200 text-slate-700'   },
-          _default:         { label: '—',           badge: 'bg-slate-100 text-slate-600'   },
-      };
-
-      const styleFor = (status) => STATUS_STYLES[status] || { ...STATUS_STYLES._default, label: String(status).toUpperCase() };
-
-      const esc = (s) => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-
-      function renderTrips(trips) {
-          const tbody = document.getElementById('detail-table-body');
-          const cards = document.getElementById('detail-card-list');
-          tbody.innerHTML = '';
-          cards.innerHTML = '';
-
-          trips.forEach((t, i) => {
-              const st = styleFor(t.status);
-
-              /* ---------- Desktop row (+ hidden expandable detail row) ---------- */
-              tbody.insertAdjacentHTML('beforeend', `
-                  <tr class="hover:bg-slate-50 transition-colors">
-                      <td class="px-4 py-4">
-                          <button onclick="toggleRow(${i})" aria-expanded="false" aria-label="Ver detalles"
-                                  class="text-slate-400 hover:text-slate-700 transition-transform duration-200" id="chev-row-${i}">
-                              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>
-                          </button>
-                      </td>
-                      <td class="px-6 py-4">
-                          <span class="inline-block px-3 py-1 rounded-full text-xs font-bold tracking-wide ${st.badge}">${st.label}</span>
-                      </td>
-                      <td class="px-6 py-4 font-semibold text-text">${esc(t.origen)}</td>
-                      <td class="px-6 py-4">${esc(t.destino)}</td>
-                      <td class="px-6 py-4 text-slate-500 whitespace-nowrap">${esc(t.salida)}</td>
-                      <td class="px-6 py-4">${esc(t.carga)}</td>
-                      <td class="px-6 py-4">${esc(t.transportistas)}</td>
-                  </tr>
-                  <tr id="detail-row-${i}" class="hidden bg-slate-50">
-                      <td colspan="7" class="px-6 py-4 text-sm text-slate-600">${esc(t.detalles || 'Sin detalles adicionales.')}</td>
-                  </tr>
-              `);
-
-              /* ---------- Mobile card ---------- */
-              cards.insertAdjacentHTML('beforeend', `
-                  <div class="rounded-lg border border-border bg-surface shadow-sm overflow-hidden">
-                      <button class="w-full text-left p-4 active:bg-slate-50" onclick="toggleCard(${i})" aria-expanded="false" id="card-btn-${i}">
-                          <div class="flex items-center justify-between gap-3 mb-3">
-                              <span class="inline-block px-3 py-1 rounded-full text-xs font-bold tracking-wide ${st.badge}">${st.label}</span>
-                              <span class="text-xs text-slate-400 whitespace-nowrap">${esc(t.salida)}</span>
-                          </div>
-                          <div class="flex items-center gap-2 min-w-0">
-                              <div class="flex-1 min-w-0">
-                                  <p class="text-[10px] uppercase tracking-wider text-slate-400 font-semibold">Origen</p>
-                                  <p class="font-bold text-text text-sm leading-snug">${esc(t.origen)}</p>
-                              </div>
-                              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-slate-300 flex-shrink-0"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
-                              <div class="flex-1 min-w-0 text-right">
-                                  <p class="text-[10px] uppercase tracking-wider text-slate-400 font-semibold">Destino</p>
-                                  <p class="font-bold text-text text-sm leading-snug">${esc(t.destino)}</p>
-                              </div>
-                          </div>
-                      </button>
-                      <div id="card-body-${i}" class="hidden border-t border-border bg-slate-50 px-4 py-3">
-                          <dl class="grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
-                              <div>
-                                  <dt class="text-[10px] uppercase tracking-wider text-slate-400 font-semibold">Carga</dt>
-                                  <dd class="text-text">${esc(t.carga)}</dd>
-                              </div>
-                              <div>
-                                  <dt class="text-[10px] uppercase tracking-wider text-slate-400 font-semibold">Transportistas</dt>
-                                  <dd class="text-text">${esc(t.transportistas)}</dd>
-                              </div>
-                              ${t.detalles ? `<div class="col-span-2"><dt class="text-[10px] uppercase tracking-wider text-slate-400 font-semibold">Detalles</dt><dd class="text-slate-600">${esc(t.detalles)}</dd></div>` : ''}
-                          </dl>
-                      </div>
-                  </div>
-              `);
-          });
-      }
-
-      function toggleRow(i) {
-          const row = document.getElementById(`detail-row-${i}`);
-          const chev = document.getElementById(`chev-row-${i}`);
-          const open = row.classList.toggle('hidden') === false;
-          chev.style.transform = open ? 'rotate(90deg)' : '';
-          chev.setAttribute('aria-expanded', open);
-      }
-
-      function toggleCard(i) {
-          const body = document.getElementById(`card-body-${i}`);
-          const btn = document.getElementById(`card-btn-${i}`);
-          const open = body.classList.toggle('hidden') === false;
-          btn.setAttribute('aria-expanded', open);
-      }
-
-      // Expose for dashboard_map.js (which is a module and lives in its own scope)
-      window.renderTrips = renderTrips;
-      window.toggleRow = toggleRow;
-      window.toggleCard = toggleCard;
-    </script>
 
     <!-- Keep the mobile user chip in sync + redraw the GeoChart on resize
          (Google Charts does NOT auto-resize on its own) -->
