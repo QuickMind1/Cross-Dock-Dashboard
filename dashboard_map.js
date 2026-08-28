@@ -18,7 +18,7 @@ const auth = getAuth(app);
 // see tripManager/deploy/README.md. Port 8080 is taken locally by
 // Listener_WhatsAppBot's Express server, so tripManager's API defaults to
 // 8081 (see tripManager/.env's PORT) — keep these in sync.
-const API_BASE_URL = 'http://35.253.24.182:8081';
+const API_BASE_URL = 'https://item-arrange-reveals-suggesting.trycloudflare.com';
 
 let allTrips = [];
 let geoChart;
