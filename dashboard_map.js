@@ -18,7 +18,7 @@ const auth = getAuth(app);
 // see tripManager/deploy/README.md. Port 8080 is taken locally by
 // Listener_WhatsAppBot's Express server, so tripManager's API defaults to
 // 8081 (see tripManager/.env's PORT) — keep these in sync.
-const API_BASE_URL = 'https://paint-calcium-composite-wanted.trycloudflare.com';
+const API_BASE_URL = 'https://paint-calcium-composite-wanted.trycloudflare.com'; // 'http://localhost:8081';
 
 let allTrips = [];
 let geoChart;
@@ -200,8 +200,8 @@ function processDataAndDrawMap() {
 
     allTrips.forEach((trip) => {
         const stateCode = currentMapMode === 'origen'
-            ? (trip.origen_iso || mapOriginToStateCode(trip.origen))
-            : (trip.destino_iso || mapOriginToStateCode(trip.destino));
+            ? trip.origen_estado_iso
+            : trip.destino_estado_iso
         if (stateCode) {
             stateCounts[stateCode] = (stateCounts[stateCode] || 0) + 1;
         }
@@ -210,8 +210,6 @@ function processDataAndDrawMap() {
     drawMap(stateCounts);
 }
 
-// Exposed for dashboard.html's debounced resize handler so the GeoChart
-// re-fits its container after a window resize / device rotation.
 window.redrawMap = processDataAndDrawMap;
 
 // Google GeoChart's Mexico province map still uses the pre-2016 ISO codes,
@@ -331,8 +329,8 @@ window.showDetails = function(filterType, filterValue) {
         currentFilterName = filterValue.replace('MX-', '');
         currentFilteredTrips = allTrips.filter(t => {
             const stateCode = currentMapMode === 'origen'
-                ? (t.origen_iso || mapOriginToStateCode(t.origen))
-                : (t.destino_iso || mapOriginToStateCode(t.destino));
+                ? t.origen_estado_iso
+                : t.destino_estado_iso;
             return stateCode === filterValue;
         });
     } else {
@@ -846,37 +844,3 @@ window.goBackToMap = function() {
 
     processDataAndDrawMap();
 };
-
-// Deprecated: move the map logic using the geocode_api script
-// at the time a new trip is detected
-// TODO: retrieve the state code from the trip database record
-// to display it on the Geochart div
-function mapOriginToStateCode(origenString) {
-    if (!origenString) return null;
-    const str = origenString.toLowerCase();
-
-    if (str.includes("monterrey") || str.includes("nuevo león") || str.includes("nle")) return 'MX-NLE';
-            if (str.includes("cdmx") || str.includes("vallejo") || str.includes("ciudad de méxico")) return 'MX-CMX';
-            if (str.includes("guadalajara") || str.includes("jalisco")) return 'MX-JAL';
-            if (str.includes("toluca") || str.includes("edomex") || str.includes("cuautitlán") || str.includes("tlalnepantla")) return 'MX-MEX';
-            if (str.includes("mérida") || str.includes("yucatán")) return 'MX-YUC';
-            if (str.includes("cancún") || str.includes("qroo") || str.includes("quintana roo")) return 'MX-ROO';
-            if (str.includes("manzanillo") || str.includes("colima")) return 'MX-COL';
-            if (str.includes("tijuana") || str.includes("baja california") || str.includes("bc")) return 'MX-BCN';
-            if (str.includes("puebla")) return 'MX-PUE';
-            if (str.includes("veracruz") || str.includes("xalapa")) return 'MX-VER';
-            if (str.includes("aguascalientes")) return 'MX-AGU';
-            if (str.includes("uruapan") || str.includes("michoacán")) return 'MX-MIC';
-            if (str.includes("san luis") || str.includes("slp")) return 'MX-SLP';
-            if (str.includes("saltillo") || str.includes("coahuila")) return 'MX-COA';
-            if (str.includes("querétaro") || str.includes("qro")) return 'MX-QUE';
-            if (str.includes("silao") || str.includes("guanajuato") || str.includes("león")) return 'MX-GUA';
-            if (str.includes("chihuahua") || str.includes("juárez")) return 'MX-CHH';
-            if (str.includes("hermosillo") || str.includes("sonora")) return 'MX-SON';
-            if (str.includes("tamaulipas") || str.includes("laredo")) return 'MX-TAM';
-            if (str.includes("oaxaca")) return 'MX-OAX';
-            if (str.includes("chiapas")) return 'MX-CHP';
-            if (str.includes("villahermosa") || str.includes("tabasco")) return 'MX-TAB';
-
-    return null;
-}
