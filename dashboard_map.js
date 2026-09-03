@@ -1,5 +1,6 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
 import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
+import { formatDriveTime } from "./core/routes.mjs";
 
 const firebaseConfig = {
   apiKey: "AIzaSyA-hCb_di_Xi4QiNmIns1mdVp0KQGe3eGc",
@@ -720,6 +721,7 @@ function buildTripDetails(trip) {
 
     const formatValue = (key, value) => {
         if (value === null || value === undefined || value === '') return '<span class="text-slate-400 italic">N/A</span>';
+        if (key === 'tiempo_viaje_estimado') return formatDriveTime(value);
         if (/fecha/i.test(key) && !isNaN(new Date(value).getTime())) {
             return escapeHtml(formatStateDate(value) || String(value));
         }
