@@ -137,9 +137,10 @@ async function fetchTrips() {
         allTrips = trips;
         populateGroupFilter();
 
-        let requested = 0, creation = 0, confirmation = 0, dispatched = 0, completion = 0;
+        let requested = 0, creation = 0, confirmation = 0, dispatched = 0, completion = 0, warnings = 0;
 
         allTrips.forEach((trip) => {
+            if (trip.warning) warnings++;
             switch (trip.estado) {
                 case TripState.REQUESTED:    requested++;    break;
                 case TripState.CREATION:     creation++;     break;
@@ -148,13 +149,14 @@ async function fetchTrips() {
                 case TripState.COMPLETION:   completion++;   break;
             }
         });
-
+    
         document.getElementById('val-total-trips').innerText = allTrips.length;
         document.getElementById('val-requested').innerText = requested;
         document.getElementById('val-creation').innerText = creation;
         document.getElementById('val-confirmation').innerText = confirmation;
         document.getElementById('val-dispatched').innerText = dispatched;
         document.getElementById('val-completion').innerText = completion;
+        document.getElementById('val-warnings').innerText = warnings;
 
         processDataAndDrawMap();
 
@@ -334,6 +336,10 @@ window.showDetails = function(filterType, filterValue) {
                 : t.destino_estado_iso;
             return stateCode === filterValue;
         });
+    } else if (filterType === 'warning') {
+        document.getElementById('table-title').innerText = 'Viajes con Alertas';
+        currentFilterName = "warnings";
+        currentFilteredTrips = allTrips.filter(t => t.warning);
     } else {
         document.getElementById('table-title').innerText = 'Mostrando todos los viajes';
         currentFilteredTrips = allTrips;
@@ -410,6 +416,11 @@ function renderTripList() {
     pageTrips.forEach((trip, index) => {
         const badgeStyle = STATE_BADGES[trip.estado] || "bg-slate-100 text-slate-800";
         const stateLabel = STATE_LABELS[trip.estado] || trip.estado || 'N/A';
+
+        const warningBadge = trip.warning
+            ? `<span class="px-2 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider bg-red-100 text-red-800 ml-2 shadow-sm" title="Alerta de sistema">${escapeHtml(trip.warning)}</span>`
+            : '';
+
         const fechaText = trip.fecha_creacion
             ? new Date(trip.fecha_creacion).toLocaleString('es-MX', {
                 day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit',
@@ -427,9 +438,11 @@ function renderTripList() {
                 </svg>
             </td>
             <td class="px-6 py-4 whitespace-nowrap">
-                <span class="px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider ${badgeStyle}">
-                    ${stateLabel}
-                </span>
+                ${warningBadge === ''
+                ?   `<span class="px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider ${badgeStyle}">
+                        ${stateLabel}
+                    </span>`
+                : warningBadge}
             </td>
             <td class="px-6 py-4 text-slate-600">${trip.empresa || 'N/A'}</td>
             <td class="px-6 py-4 font-medium text-slate-800">${trip.origen || 'N/A'}</td>
