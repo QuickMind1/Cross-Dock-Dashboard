@@ -19,7 +19,9 @@ const auth = getAuth(app);
 // see tripManager/deploy/README.md. Port 8080 is taken locally by
 // Listener_WhatsAppBot's Express server, so tripManager's API defaults to
 // 8081 (see tripManager/.env's PORT) — keep these in sync.
-const API_BASE_URL = 'http://localhost:8081'; // 'https://paint-calcium-composite-wanted.trycloudflare.com';
+// const API_BASE_URL = 'http://localhost:8081'; // 'https://paint-calcium-composite-wanted.trycloudflare.com';
+const API_BASE_URL = 'http://localhost:8081';
+
 
 let allTrips = [];
 let geoChart;
@@ -69,6 +71,14 @@ const STATE_BADGES = {
     [TripState.CONFIRMATION]: 'bg-sky-100 text-sky-800',
     [TripState.DISPATCHED]:   'bg-blue-100 text-blue-800',
     [TripState.COMPLETION]:   'bg-emerald-100 text-emerald-800',
+};
+
+// Mirrors computeWarning in tripManager/internal/api/handlers.go: the three
+// labels the API can put in trip.warning (or '' when none applies).
+const WarningType = {
+    UNATTENDED:  'Request no atendida',
+    DELAYED:     'Delayed',
+    OUT_OF_DATE: 'outOfDate',
 };
 
 onAuthStateChanged(auth, (user) => {
@@ -138,9 +148,17 @@ async function fetchTrips() {
         populateGroupFilter();
 
         let requested = 0, creation = 0, confirmation = 0, dispatched = 0, completion = 0, warnings = 0;
+        let warningUnattended = 0, warningDelayed = 0, warningOutOfDate = 0;
 
         allTrips.forEach((trip) => {
-            if (trip.warning) warnings++;
+            if (trip.warning) {
+                warnings++;
+                switch (trip.warning) {
+                    case WarningType.UNATTENDED:  warningUnattended++;  break;
+                    case WarningType.DELAYED:     warningDelayed++;     break;
+                    case WarningType.OUT_OF_DATE: warningOutOfDate++;   break;
+                }
+            }
             switch (trip.estado) {
                 case TripState.REQUESTED:    requested++;    break;
                 case TripState.CREATION:     creation++;     break;
@@ -149,7 +167,7 @@ async function fetchTrips() {
                 case TripState.COMPLETION:   completion++;   break;
             }
         });
-    
+
         document.getElementById('val-total-trips').innerText = allTrips.length;
         document.getElementById('val-requested').innerText = requested;
         document.getElementById('val-creation').innerText = creation;
@@ -157,6 +175,12 @@ async function fetchTrips() {
         document.getElementById('val-dispatched').innerText = dispatched;
         document.getElementById('val-completion').innerText = completion;
         document.getElementById('val-warnings').innerText = warnings;
+        const elWarningUnattended = document.getElementById('val-warning-unattended');
+        if (elWarningUnattended) elWarningUnattended.innerText = warningUnattended;
+        const elWarningDelayed = document.getElementById('val-warning-delayed');
+        if (elWarningDelayed) elWarningDelayed.innerText = warningDelayed;
+        const elWarningOutOfDate = document.getElementById('val-warning-outofdate');
+        if (elWarningOutOfDate) elWarningOutOfDate.innerText = warningOutOfDate;
 
         processDataAndDrawMap();
 
@@ -438,11 +462,10 @@ function renderTripList() {
                 </svg>
             </td>
             <td class="px-6 py-4 whitespace-nowrap">
-                ${warningBadge === ''
-                ?   `<span class="px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider ${badgeStyle}">
-                        ${stateLabel}
-                    </span>`
-                : warningBadge}
+                <span class="px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider ${badgeStyle}">
+                    ${stateLabel}
+                </span>
+                ${warningBadge}
             </td>
             <td class="px-6 py-4 text-slate-600">${trip.empresa || 'N/A'}</td>
             <td class="px-6 py-4 font-medium text-slate-800">${trip.origen || 'N/A'}</td>
@@ -480,9 +503,12 @@ function renderTripList() {
                         class="w-full text-left p-4 active:bg-slate-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-icon"
                         aria-expanded="false">
                     <div class="flex items-center justify-between gap-3 mb-3">
-                        <span class="inline-block px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider ${badgeStyle}">
-                            ${stateLabel}
-                        </span>
+                        <div class="flex items-center gap-2 flex-wrap">
+                            <span class="inline-block px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider ${badgeStyle}">
+                                ${stateLabel}
+                            </span>
+                            ${warningBadge}
+                        </div>
                         <span class="text-xs text-slate-400 whitespace-nowrap">${fechaText}</span>
                     </div>
                     <div class="flex items-center gap-2 min-w-0">
@@ -643,6 +669,82 @@ function buildStatusNotice(trip) {
     `;
 }
 
+// Explains trip.warning (computed server-side in computeWarning, see
+// tripManager/internal/api/handlers.go) the same way buildStatusNotice
+// explains trip.estado. Falls back to a generic notice for any warning
+// value not in this map, so a new backend warning type still shows
+// something meaningful instead of silently rendering nothing.
+const WARNING_ALERT_ICON = '<path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"></path><path d="M12 9v4"></path><path d="M12 17h.01"></path>';
+
+const WARNING_NOTICES = {
+    [WarningType.UNATTENDED]: {
+        title: 'Solicitud sin atender',
+        message: 'Un cliente pidió este viaje y ningún transportista lo ha confirmado todavía con un mensaje de creación.',
+    },
+    [WarningType.DELAYED]: {
+        title: 'Recolección retrasada',
+        message: 'La fecha de recolección programada ya pasó y el transportista aún no reporta que el viaje salió.',
+    },
+    [WarningType.OUT_OF_DATE]: {
+        title: 'Riesgo de entrega tardía',
+        message: 'Con el tiempo estimado de viaje actual, la llegada calculada excede la fecha de entrega comprometida.',
+    },
+};
+
+function buildWarningNotice(trip) {
+    if (!trip.warning) return '';
+    const notice = WARNING_NOTICES[trip.warning] || { title: 'Alerta del sistema', message: trip.warning };
+
+    return `
+        <div class="flex items-start gap-3 p-3 mb-4 border rounded-lg bg-red-50 border-red-300 text-red-800">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="flex-shrink-0 mt-0.5 text-red-500">
+                ${WARNING_ALERT_ICON}
+            </svg>
+            <div class="text-sm leading-snug">
+                <div class="font-semibold">${escapeHtml(notice.title)}</div>
+                <div class="opacity-90">${escapeHtml(notice.message)}</div>
+            </div>
+        </div>
+    `;
+}
+
+// Surfaces fecha_recoleccion/fecha_entrega/tiempo_estimado as first-class
+// fields instead of letting them fall into buildTripDetails' generic
+// "Detalles adicionales" grid — they're the basis for the Delayed/outOfDate
+// warnings, so a coordinator needs to see them without digging.
+function buildTripDatesInfo(trip) {
+    const rows = [
+        { label: 'Fecha de creación',          value: formatStateDate(trip.fecha_creacion) },
+        { label: 'Fecha de recolección',       value: formatStateDate(trip.fecha_recoleccion) },
+        { label: 'Fecha de entrega',           value: formatStateDate(trip.fecha_entrega) },
+        { label: 'Tiempo estimado de viaje',   value: trip.tiempo_estimado ? formatDriveTime(trip.tiempo_estimado) : null },
+    ];
+
+    const cards = rows.map(({ label, value }) => `
+        <div class="bg-white rounded-lg p-3 border border-border shadow-sm">
+            <div class="text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1">${escapeHtml(label)}</div>
+            <div class="text-sm text-slate-800 break-words">${value || '<span class="text-slate-400 italic">N/A</span>'}</div>
+        </div>
+    `).join('');
+
+    return `
+        <div class="mb-4">
+            <h4 class="text-sm font-bold text-primary mb-3 flex items-center gap-2">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <rect width="18" height="18" x="3" y="4" rx="2" ry="2"></rect>
+                    <line x1="16" x2="16" y1="2" y2="6"></line>
+                    <line x1="8" x2="8" y1="2" y2="6"></line>
+                    <line x1="3" x2="21" y1="10" y2="10"></line>
+                </svg>
+                Fechas y tiempo estimado
+            </h4>
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                ${cards}
+            </div>
+        </div>
+    `;
+}
+
 // The schema only supports one driver per trip (trip.driver_id), so this is
 // a single-name block rather than the old multi-driver assignment list.
 function buildDriverInfo(trip) {
@@ -725,7 +827,10 @@ function buildTripDetails(trip) {
     // Already rendered by buildTripIdBlock/buildStatusBar/buildStatusNotice/
     // buildDriverInfo or the table row itself — everything else falls into
     // "extra" below (empresa, grupo, partner today).
-    const usedKeys = new Set(['id', 'estado', 'origen', 'destino', 'fecha_creacion', 'transportista', 'estados', 'contenido_solicitud']);
+    const usedKeys = new Set([
+        'id', 'estado', 'origen', 'destino', 'fecha_creacion', 'transportista', 'estados', 'contenido_solicitud',
+        'fecha_recoleccion', 'fecha_entrega', 'tiempo_estimado', 'warning',
+    ]);
 
     const prettyLabel = (key) => key
         .replace(/([a-z])([A-Z])/g, '$1 $2')
@@ -734,7 +839,6 @@ function buildTripDetails(trip) {
 
     const formatValue = (key, value) => {
         if (value === null || value === undefined || value === '') return '<span class="text-slate-400 italic">N/A</span>';
-        if (key === 'tiempo_viaje_estimado') return formatDriveTime(value);
         if (/fecha/i.test(key) && !isNaN(new Date(value).getTime())) {
             return escapeHtml(formatStateDate(value) || String(value));
         }
@@ -779,7 +883,9 @@ function buildTripDetails(trip) {
         <div>
             ${buildTripIdBlock(trip)}
             ${buildStatusBar(trip)}
+            ${buildWarningNotice(trip)}
             ${buildStatusNotice(trip)}
+            ${buildTripDatesInfo(trip)}
             ${requestContentSection}
             ${buildDriverInfo(trip)}
             ${detailsSection}
