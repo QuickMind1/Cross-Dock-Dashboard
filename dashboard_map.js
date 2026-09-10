@@ -73,8 +73,10 @@ const STATE_BADGES = {
     [TripState.COMPLETION]:   'bg-emerald-100 text-emerald-800',
 };
 
-// Mirrors computeWarning in tripManager/internal/api/handlers.go: the three
-// labels the API can put in trip.warning (or '' when none applies).
+// Mirrors computeWarning in tripManager/internal/api/handlers.go: these MUST
+// be the exact strings the API puts in trip.warning (or '' when none
+// applies) — they're used for equality checks against trip.warning, not
+// just for display. Nice Spanish labels live separately in WARNING_NOTICES.
 const WarningType = {
     UNATTENDED:  'Request no atendida',
     DELAYED:     'Delayed',
@@ -717,7 +719,7 @@ function buildTripDatesInfo(trip) {
         { label: 'Fecha de creación',          value: formatStateDate(trip.fecha_creacion) },
         { label: 'Fecha de recolección',       value: formatStateDate(trip.fecha_recoleccion) },
         { label: 'Fecha de entrega',           value: formatStateDate(trip.fecha_entrega) },
-        { label: 'Tiempo estimado de viaje',   value: trip.tiempo_estimado ? formatDriveTime(trip.tiempo_estimado) : null },
+        { label: 'Tiempo estimado de viaje',   value: trip.tiempo_viaje_estimado ? formatDriveTime(trip.tiempo_viaje_estimado) : null },
     ];
 
     const cards = rows.map(({ label, value }) => `
@@ -793,22 +795,80 @@ function buildTripIdBlock(trip) {
     if (!trip.id) return '';
 
     return `
-        <div class="mb-4 flex items-center gap-2 flex-wrap">
-            <span class="text-[10px] font-bold uppercase tracking-wider text-slate-500">ID del viaje</span>
-            <code class="px-2 py-1 rounded bg-slate-100 text-slate-800 text-sm font-mono break-all">${escapeHtml(trip.id)}</code>
+        <div class="mb-4 flex items-center justify-between gap-2 flex-wrap">
+            <div class="flex items-center gap-2 flex-wrap">
+                <span class="text-[10px] font-bold uppercase tracking-wider text-slate-500">ID del viaje</span>
+                <code class="px-2 py-1 rounded bg-slate-100 text-slate-800 text-sm font-mono break-all">${escapeHtml(trip.id)}</code>
+                <button type="button"
+                        class="copy-trip-id-btn flex items-center gap-1 px-2 py-1 rounded-md border border-border bg-white hover:bg-slate-50 text-slate-600 text-xs font-medium transition-colors"
+                        onclick="copyTripId(this, '${escapeHtml(trip.id)}')"
+                        aria-label="Copiar ID del viaje">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <rect width="14" height="14" x="8" y="8" rx="2" ry="2"></rect>
+                        <path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"></path>
+                    </svg>
+                    <span class="copy-trip-id-label">Copiar</span>
+                </button>
+            </div>
             <button type="button"
-                    class="copy-trip-id-btn flex items-center gap-1 px-2 py-1 rounded-md border border-border bg-white hover:bg-slate-50 text-slate-600 text-xs font-medium transition-colors"
-                    onclick="copyTripId(this, '${escapeHtml(trip.id)}')"
-                    aria-label="Copiar ID del viaje">
-                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <rect width="14" height="14" x="8" y="8" rx="2" ry="2"></rect>
-                    <path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"></path>
-                </svg>
-                <span class="copy-trip-id-label">Copiar</span>
+                    class="delete-trip-btn px-3 py-1.5 rounded-md text-white text-xs font-semibold transition-colors bg-red-600 hover:bg-red-700"
+                    data-armed="false"
+                    onclick="deleteTrip(this, '${escapeHtml(trip.id)}', '${escapeHtml(trip.partner || '')}')"
+                    aria-label="Eliminar viaje">
+                Eliminar viaje
             </button>
         </div>
     `;
 }
+
+// Two-step delete: first click arms the button (turns black, "Confirmar"),
+// a second click within 5s actually deletes. Any other outcome (timeout,
+// error) disarms it back to the red "Eliminar viaje" state, since this is
+// an irreversible hard delete on the server (DeleteTrip in
+// tripManager/internal/api/handlers.go) — never delete on a single click.
+window.deleteTrip = function(btn, tripId, partner) {
+    const disarm = () => {
+        btn.dataset.armed = 'false';
+        btn.textContent = 'Eliminar viaje';
+        btn.classList.remove('bg-black', 'hover:bg-slate-800');
+        btn.classList.add('bg-red-600', 'hover:bg-red-700');
+    };
+
+    if (btn.dataset.armed !== 'true') {
+        btn.dataset.armed = 'true';
+        btn.textContent = 'Confirmar';
+        btn.classList.remove('bg-red-600', 'hover:bg-red-700');
+        btn.classList.add('bg-black', 'hover:bg-slate-800');
+        clearTimeout(btn.__armResetTimer);
+        btn.__armResetTimer = setTimeout(disarm, 5000);
+        return;
+    }
+
+    clearTimeout(btn.__armResetTimer);
+    btn.disabled = true;
+    btn.textContent = 'Eliminando…';
+
+    (async () => {
+        try {
+            const user = auth.currentUser;
+            if (!user) throw new Error('No autenticado');
+            const idToken = await user.getIdToken();
+
+            const response = await fetch(
+                `${API_BASE_URL}/api/trips/${encodeURIComponent(tripId)}?partner=${encodeURIComponent(partner)}`,
+                { method: 'DELETE', headers: { 'Authorization': `Bearer ${idToken}` } }
+            );
+            if (!response.ok) throw new Error(`HTTP ${response.status}`);
+
+            await fetchTrips();
+        } catch (error) {
+            console.error('Error deleting trip: ', error);
+            btn.disabled = false;
+            disarm();
+            alert('No se pudo eliminar el viaje. Intenta de nuevo.');
+        }
+    })();
+};
 
 window.copyTripId = function(btn, tripId) {
     navigator.clipboard.writeText(tripId).then(() => {
@@ -829,7 +889,7 @@ function buildTripDetails(trip) {
     // "extra" below (empresa, grupo, partner today).
     const usedKeys = new Set([
         'id', 'estado', 'origen', 'destino', 'fecha_creacion', 'transportista', 'estados', 'contenido_solicitud',
-        'fecha_recoleccion', 'fecha_entrega', 'tiempo_estimado', 'warning',
+        'fecha_recoleccion', 'fecha_entrega', 'tiempo_viaje_estimado', 'warning',
     ]);
 
     const prettyLabel = (key) => key
