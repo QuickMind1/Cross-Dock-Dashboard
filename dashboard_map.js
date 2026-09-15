@@ -22,7 +22,7 @@ const auth = getAuth(app);
 // 8081 (see tripManager/.env's PORT) — keep these in sync.
 // const API_BASE_URL = 'http://localhost:8081'; // 'https://paint-calcium-composite-wanted.trycloudflare.com';
 // const API_BASE_URL = 'http://localhost:8081';
-const API_BASE_URL = 'https://api.phortia.com.mx/'
+const API_BASE_URL = 'https://api.phortia.com.mx'
 
 let allTrips = [];
 let geoChart;
