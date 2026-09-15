@@ -21,7 +21,8 @@ const auth = getAuth(app);
 // Listener_WhatsAppBot's Express server, so tripManager's API defaults to
 // 8081 (see tripManager/.env's PORT) — keep these in sync.
 // const API_BASE_URL = 'http://localhost:8081'; // 'https://paint-calcium-composite-wanted.trycloudflare.com';
-const API_BASE_URL = 'http://localhost:8081';
+// const API_BASE_URL = 'http://localhost:8081';
+const API_BASE_URL = 'https://api.phortia.com.mx/'
 
 let allTrips = [];
 let geoChart;
