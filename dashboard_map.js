@@ -1,6 +1,7 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
 import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
 import { formatDriveTime } from "./core/routes.mjs";
+import { SendWarningEmail, SendWarningEmails } from "./core/api/warnings.mjs";
 
 const firebaseConfig = {
   apiKey: "AIzaSyA-hCb_di_Xi4QiNmIns1mdVp0KQGe3eGc",
@@ -21,7 +22,6 @@ const auth = getAuth(app);
 // 8081 (see tripManager/.env's PORT) — keep these in sync.
 // const API_BASE_URL = 'http://localhost:8081'; // 'https://paint-calcium-composite-wanted.trycloudflare.com';
 const API_BASE_URL = 'http://localhost:8081';
-
 
 let allTrips = [];
 let geoChart;
@@ -344,6 +344,7 @@ window.toggleMapMode = function(mode) {
 window.showDetails = function(filterType, filterValue) {
     document.getElementById('main-view').classList.add('hidden');
     document.getElementById('detail-view').classList.remove('hidden');
+    const sendWarningEmailsBtn = document.getElementById('sendWarningsBtn');
 
     currentDetailFilter = { type: filterType, value: filterValue };
 
@@ -351,6 +352,7 @@ window.showDetails = function(filterType, filterValue) {
         document.getElementById('table-title').innerText = `Viajes filtrados por estado: ${STATE_LABELS[filterValue] || filterValue}`;
         currentFilteredTrips = allTrips.filter(t => t.estado === filterValue);
         currentFilterName = filterValue;
+        sendWarningEmailsBtn.classList.add('hidden');
     }
     else if (filterType === 'state') {
         const modeText = currentMapMode === 'origen' ? 'Origen' : 'Destino';
@@ -362,14 +364,17 @@ window.showDetails = function(filterType, filterValue) {
                 : t.destino_estado_iso;
             return stateCode === filterValue;
         });
+        sendWarningEmailsBtn.classList.add('hidden');
     } else if (filterType === 'warning') {
         document.getElementById('table-title').innerText = 'Viajes con Alertas';
         currentFilterName = "warnings";
         currentFilteredTrips = allTrips.filter(t => t.warning);
+        sendWarningEmailsBtn.classList.remove('hidden');
     } else {
         document.getElementById('table-title').innerText = 'Mostrando todos los viajes';
         currentFilteredTrips = allTrips;
         currentFilterName = "all_trips";
+        sendWarningEmailsBtn.classList.add('hidden');
     }
 
     currentPage = 1;
@@ -794,6 +799,13 @@ function buildDriverInfo(trip) {
 function buildTripIdBlock(trip) {
     if (!trip.id) return '';
 
+    const emailBtn = trip.warning ? 
+        `<button type="button"
+                class="px-3 py-1.5 rounded-md text-white text-xs font-semibold transition-colors bg-orange-500 hover:bg-orange-600"
+                onclick="sendWarningEmail(this, '${escapeHtml(trip.id)}', '${escapeHtml(trip.warning)}')">
+            Notificar alerta
+        </button>` : '';
+
     return `
         <div class="mb-4 flex items-center justify-between gap-2 flex-wrap">
             <div class="flex items-center gap-2 flex-wrap">
@@ -810,13 +822,16 @@ function buildTripIdBlock(trip) {
                     <span class="copy-trip-id-label">Copiar</span>
                 </button>
             </div>
-            <button type="button"
-                    class="delete-trip-btn px-3 py-1.5 rounded-md text-white text-xs font-semibold transition-colors bg-red-600 hover:bg-red-700"
-                    data-armed="false"
-                    onclick="deleteTrip(this, '${escapeHtml(trip.id)}', '${escapeHtml(trip.partner || '')}')"
-                    aria-label="Eliminar viaje">
-                Eliminar viaje
-            </button>
+            <div class="flex items-center gap-2">
+                ${emailBtn}
+                <button type="button"
+                        class="delete-trip-btn px-3 py-1.5 rounded-md text-white text-xs font-semibold transition-colors bg-red-600 hover:bg-red-700"
+                        data-armed="false"
+                        onclick="deleteTrip(this, '${escapeHtml(trip.id)}', '${escapeHtml(trip.partner || '')}')"
+                        aria-label="Eliminar viaje">
+                    Eliminar viaje
+                </button>
+            </div>
         </div>
     `;
 }
@@ -1025,3 +1040,49 @@ window.goBackToMap = function() {
 
     processDataAndDrawMap();
 };
+
+window.sendWarningEmail = async function(btn, tripID, warning) {
+    btn.disabled = true;
+    const originalText = btn.TextContent;
+    btn.textContent = 'Enviando...';
+
+    const user = auth.currentUser;
+    if (!user) return;
+    const idToken = await user.getIdToken();
+
+    const success = await SendWarningEmail(idToken, warning, tripID);
+
+    if (success) {
+        btn.textContent = '¡Enviado!';
+        btn.classList.replace('bg-orange-500', 'bg-emerald-600');
+        btn.classList.replace('hover:bg-orange-600', 'hover:bg-emerald-700');
+    } else {
+        btn.textContent = 'Error';
+        btn.classList.replace('bg-orange-500', 'bg-red-600');
+        btn.classList.replace('hover:bg-orange-600', 'hover:bg-red-700');
+    }
+
+    setTimeout(() => {
+        btn.disabled = false;
+        btn.textContent = originalText;
+        btn.className = "px-3 py-1.5 rounded-md text-white text-xs font-semibold transition-colors bg-orange-500 hover:bg-orange-600";
+    }, 5000);
+};
+
+window.sendWarningEmails = async function() {
+    const btn = document.getElementById('sendWarningsBtn');
+    btn.disabled = true;
+    const originalHTML = btn.innerHTML;
+    btn.innerHTML = 'Enviando...';
+
+    const user = auth.currentUser;
+    if (!user) return;
+    const idToken = await user.getIdToken();
+
+    const { attempted, succeeded } = await SendWarningEmails(idToken, currentFilteredTrips);
+    
+    alert(`Proceso finalizado: se enviaron correctamente ${succeeded} de ${attempted} correos`);
+
+    btn.disabled = false;
+    btn.innerHTML = originalHTML;
+}
