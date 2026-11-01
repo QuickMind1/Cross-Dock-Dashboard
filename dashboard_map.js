@@ -474,6 +474,7 @@ function renderTripList() {
                     ${stateLabel}
                 </span>
                 ${warningBadge}
+                ${trip.ultimo_estatus ? `<div class="mt-1 text-xs text-slate-500 max-w-[260px] truncate" title="${escapeHtml(trip.ultimo_estatus)}">${escapeHtml(trip.ultimo_estatus)}</div>` : ''}
             </td>
             <td class="px-6 py-4 text-slate-600">${trip.empresa || 'N/A'}</td>
             <td class="px-6 py-4 font-medium text-slate-800">${trip.origen || 'N/A'}</td>
@@ -755,6 +756,44 @@ function buildTripDatesInfo(trip) {
 
 // The schema only supports one driver per trip (trip.driver_id), so this is
 // a single-name block rather than the old multi-driver assignment list.
+// Unit data reported by the operations group (ops filter mode): plates,
+// economic number and the latest status note. Empty for trips that came from
+// the other modes, so the block simply doesn't render for them.
+function buildUnitInfo(trip) {
+    const rows = [
+        { label: 'Tracto',        value: trip.tracto },
+        { label: 'Caja',          value: trip.caja },
+        { label: 'Eco',           value: trip.eco },
+        { label: 'Último estatus', value: trip.ultimo_estatus, wide: true },
+    ].filter(r => r.value);
+
+    if (rows.length === 0) return '';
+
+    const cards = rows.map(({ label, value, wide }) => `
+        <div class="bg-white rounded-lg p-3 border border-border shadow-sm ${wide ? 'col-span-2 sm:col-span-4' : ''}">
+            <div class="text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1">${escapeHtml(label)}</div>
+            <div class="text-sm text-slate-800 break-words">${escapeHtml(value)}${wide && trip.fecha_ultimo_estatus ? ` <span class="text-xs text-slate-400">· ${escapeHtml(formatStateDate(trip.fecha_ultimo_estatus) || '')}</span>` : ''}</div>
+        </div>
+    `).join('');
+
+    return `
+        <div class="mb-4">
+            <h4 class="text-sm font-bold text-primary mb-3 flex items-center gap-2">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M14 18V6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v11a1 1 0 0 0 1 1h2"></path>
+                    <path d="M15 18H9"></path>
+                    <path d="M19 18h2a1 1 0 0 0 1-1v-3.65a1 1 0 0 0-.22-.624l-3.48-4.35A1 1 0 0 0 17.52 8H14"></path>
+                    <circle cx="17" cy="18" r="2"></circle><circle cx="7" cy="18" r="2"></circle>
+                </svg>
+                Unidad y estatus
+            </h4>
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                ${cards}
+            </div>
+        </div>
+    `;
+}
+
 function buildDriverInfo(trip) {
     const name = trip.transportista ? String(trip.transportista).trim() : '';
 
@@ -906,6 +945,7 @@ function buildTripDetails(trip) {
     const usedKeys = new Set([
         'id', 'estado', 'origen', 'destino', 'fecha_creacion', 'transportista', 'estados', 'contenido_solicitud',
         'fecha_recoleccion', 'fecha_entrega', 'tiempo_viaje_estimado', 'warning',
+        'tracto', 'caja', 'eco', 'ultimo_estatus', 'fecha_ultimo_estatus',
     ]);
 
     const prettyLabel = (key) => key
@@ -961,6 +1001,7 @@ function buildTripDetails(trip) {
             ${buildStatusBar(trip)}
             ${buildWarningNotice(trip)}
             ${buildStatusNotice(trip)}
+            ${buildUnitInfo(trip)}
             ${buildTripDatesInfo(trip)}
             ${requestContentSection}
             ${buildDriverInfo(trip)}
@@ -998,7 +1039,7 @@ window.exportToCSV = function() {
         return;
     }
 
-    const headers = ["Estado", "Empresa", "Grupo WA", "Origen", "Destino", "Fecha Creación", "Transportista"];
+    const headers = ["Estado", "Empresa", "Grupo WA", "Origen", "Destino", "Fecha Creación", "Transportista", "Tracto", "Caja", "Eco", "Último estatus"];
     const csvRows = [headers.join(",")];
 
     exportTrips.forEach(trip => {
@@ -1009,7 +1050,11 @@ window.exportToCSV = function() {
             `"${trip.origen || ''}"`,
             `"${trip.destino || ''}"`,
             `"${trip.fecha_creacion || ''}"`,
-            `"${trip.transportista || 'Sin asignar'}"`
+            `"${trip.transportista || 'Sin asignar'}"`,
+            `"${trip.tracto || ''}"`,
+            `"${trip.caja || ''}"`,
+            `"${trip.eco || ''}"`,
+            `"${(trip.ultimo_estatus || '').replace(/"/g, '""')}"`
         ];
         csvRows.push(row.join(","));
     });
